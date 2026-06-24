@@ -100,31 +100,37 @@ properties, so re-theming the site re-themes the live drawing too.
 
 The output in `dist/` is plain static files — host it anywhere.
 
-### Netlify
-- Build command: `npm run build`
-- Publish directory: `dist`
+### GitHub Pages (configured)
 
-### Vercel
-- Framework preset: **Astro** (auto-detected)
-- Output is static; no serverless functions needed.
+This repo ships a workflow at [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+that builds with Node 20 and deploys `dist/` to GitHub Pages on every push to `main`.
 
-### GitHub Pages
-```sh
-npm run build
-# deploy ./dist (e.g. via actions-gh-pages or the official Pages action)
-```
+**One-time setup:** repo **Settings → Pages → Build and deployment → Source: GitHub
+Actions**. After that, each push to `main` publishes automatically. Until a custom domain
+is mapped, the site is served at `https://musacad.github.io/MusaCAD-Website/`.
+
+`astro.config.mjs` **auto-detects the base path**: with no custom domain it builds for the
+`/MusaCAD-Website/` subpath; the moment a `public/CNAME` file exists it switches to root
+(`/`) with `site` set to that domain. So all asset/canonical/OG URLs stay correct in both
+states with no manual edit.
 
 ### Custom domain (musacad.org)
 
-1. Add `musacad.org` as the custom domain in your host (Netlify/Vercel/Pages).
-2. DNS:
-   - Apex `musacad.org` → host's apex/ALIAS/`A` records (or ` A 185.199.108.153`…
-     set for GitHub Pages).
-   - `www` → `CNAME` to your host.
-3. For **GitHub Pages**, add a `public/CNAME` file containing `musacad.org` so it
-   survives each deploy.
-4. `astro.config.mjs` already sets `site: 'https://musacad.org'` (used for
-   canonical URLs + absolute OG image paths).
+1. Create `public/CNAME` containing one line: `musacad.org`. Commit + push — the next
+   build auto-switches `base` → `/` and `site` → `https://musacad.org`.
+2. In **Settings → Pages → Custom domain**, enter `musacad.org` and save.
+3. DNS at your registrar:
+   - Apex `musacad.org` → four `A` records: `185.199.108.153`, `185.199.109.153`,
+     `185.199.110.153`, `185.199.111.153` (optionally the matching `AAAA` records).
+   - `www.musacad.org` → `CNAME` to `musacad.github.io`.
+4. Tick **Enforce HTTPS** once GitHub issues the certificate.
+
+### Netlify / Vercel (alternative)
+
+- **Netlify** — build `npm run build`, publish `dist`.
+- **Vercel** — framework preset **Astro** (auto-detected), static output.
+- Note: both serve from root, so for these you'd want `base: '/'` (set a `public/CNAME`
+  or adjust `astro.config.mjs`).
 
 ---
 

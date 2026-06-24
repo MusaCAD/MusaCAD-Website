@@ -18,8 +18,11 @@ const {
   description = 'A high-performance, multi-threaded 2D CAD engine in modern C++23. GPU-accelerated, data-oriented, and clone-and-build clean.',
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const ogImage = new URL('/musacad_mark.png', Astro.site).href;
+// BASE_URL respects the `base` config (e.g. '/MusaCAD-Website/' or '/'), so
+// asset and canonical URLs stay correct on both project-pages and a custom domain.
+const base = import.meta.env.BASE_URL;
+const canonical = new URL(base, Astro.site).href;
+const ogImage = new URL(`${base}musacad_mark.png`, Astro.site).href;
 ---
 
 <!doctype html>
@@ -41,9 +44,9 @@ const ogImage = new URL('/musacad_mark.png', Astro.site).href;
     </script>
 
     <!-- Favicons (optimized raster derived from the official logo) -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon.png`} />
+    <link rel="icon" type="image/png" sizes="48x48" href={`${base}favicon-48.png`} />
+    <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
