@@ -132,8 +132,8 @@ import { REPO_URL, RELEASES_URL, LATEST_RELEASE, LICENSE } from '../data/site';
           <span class="font-mono text-xs text-grid">{LATEST_RELEASE}</span>
         </a>
 
-        <!-- Donate (prominent accent CTA — global [data-donate] toast handles click) -->
-        <button type="button" data-donate class="btn btn-accent px-5 py-3 text-[0.97rem]">
+        <!-- Donate (prominent accent CTA → the donation page) -->
+        <a href={`${import.meta.env.BASE_URL}donate`} class="btn btn-accent px-5 py-3 text-[0.97rem]">
           <!-- heart glyph -->
           <svg
             viewBox="0 0 24 24"
@@ -146,7 +146,7 @@ import { REPO_URL, RELEASES_URL, LATEST_RELEASE, LICENSE } from '../data/site';
             ></path>
           </svg>
           Donate
-        </button>
+        </a>
       </div>
 
       <!-- license / platform footnote -->

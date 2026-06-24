@@ -142,6 +142,17 @@ performance counters + FPS-vs-edit-activity viz, interactive command-line showca
 animated three-thread architecture diagram, get-started/build, community/support,
 and footer.
 
+## Support
+
+Musa CAD is free and actively maintained. If it's useful to you, you can help keep
+it moving — there's an interactive support page at **[musacad.org/donate](https://musacad.org/donate)**:
+
+- **UPI** — `kiranpranay12@okicici`
+- **PayPal** — [paypal.me/pranaykiran](https://paypal.me/pranaykiran)
+- **Ko-fi** — [ko-fi.com/pranaykiran](https://ko-fi.com/pranaykiran)
+
+(These also power the repo's **Sponsor** button via [`.github/FUNDING.yml`](.github/FUNDING.yml).)
+
 ## License
 
 Site code: MIT (this website). **Musa CAD itself** is

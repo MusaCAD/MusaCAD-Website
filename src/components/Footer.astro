@@ -11,12 +11,19 @@ import {
   LICENSE,
 } from '../data/site';
 
-// Internal anchor links (Product). Stay on-page.
+// Section links work whether the footer is on the home page (pure hash, smooth-
+// scrolled) or another route like /donate (prefixed back to the home page).
+const base = import.meta.env.BASE_URL;
+const path = Astro.url.pathname;
+const onHome = path === base || path === base.slice(0, -1) || path === '/';
+const sect = (hash: string) => (onHome ? hash : `${base}${hash}`);
+
 const product = [
-  { label: 'Features', href: '#features' },
-  { label: 'Performance', href: '#performance' },
-  { label: 'Architecture', href: '#architecture' },
-  { label: 'Download', href: '#download' },
+  { label: 'Features', href: sect('#features') },
+  { label: 'Performance', href: sect('#performance') },
+  { label: 'Architecture', href: sect('#architecture') },
+  { label: 'Download', href: sect('#download') },
+  { label: 'Donate', href: `${base}donate` },
 ];
 
 // External project links — all open in a new tab with rel="noopener".

@@ -1,0 +1,464 @@
+---
+// DONATE — a creative, interactive support page that keeps the CAD/blueprint
+// language: a "support console" with a protractor-style gauge, an amount→impact
+// mapping, a build-time-generated UPI QR, and a snap-marker spark burst on hover.
+// Payment methods: UPI, PayPal, Ko-fi (bank/crypto intentionally excluded).
+import Base from '../layouts/Base.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import QRCode from 'qrcode';
+
+// --- Payment destinations ---------------------------------------------------
+const UPI_ID = 'kiranpranay12@okicici';
+const PAYEE = 'Pranay Kiran';
+const UPI_BASE = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE)}&cu=INR`;
+const PAYPAL = 'https://paypal.me/pranaykiran';
+const KOFI = 'https://ko-fi.com/pranaykiran';
+
+// Build-time UPI QR (ink modules, transparent background) — no runtime work,
+// no external request. Scannable by any UPI app; the payer picks the amount.
+const upiQr = await QRCode.toString(UPI_BASE, {
+  type: 'svg',
+  margin: 1,
+  color: { dark: '#14181e', light: '#00000000' },
+});
+
+const base = import.meta.env.BASE_URL;
+---
+
+<Base
+  title="Support Musa CAD — Donate"
+  description="Help keep Musa CAD actively maintained. Support the project via UPI, PayPal, or Ko-fi."
+>
+  <Navbar />
+
+  <main data-spark-root>
+    <!-- ============================== HERO ============================== -->
+    <section
+      class="mx-auto max-w-7xl px-5 pb-10 pt-[calc(var(--nav-h)+3rem)] sm:px-8 sm:pt-[calc(var(--nav-h)+4.5rem)]"
+    >
+      <div class="mx-auto max-w-2xl text-center">
+        <div
+          class="mb-6 inline-flex items-center gap-2.5 rounded-full border border-line-strong bg-paper-2/80 py-1.5 pl-2.5 pr-3.5 font-mono text-[0.72rem] tracking-wide text-ink-soft"
+        >
+          <span class="relative flex h-2 w-2">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
+          </span>
+          SUPPORT THE PROJECT
+        </div>
+        <h1 class="text-5xl font-semibold sm:text-6xl">
+          Fund the next<br />
+          <span class="text-accent">144 frames.</span>
+        </h1>
+        <p class="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">
+          Musa CAD is free, LGPL, and built in the open. Your support keeps it
+          <span class="text-ink">actively maintained</span> — new features,
+          faster frames, and clone-and-build-clean releases.
+        </p>
+      </div>
+    </section>
+
+    <!-- ========================= SUPPORT CONSOLE ========================= -->
+    <section class="mx-auto max-w-7xl px-5 pb-8 sm:px-8">
+      <div
+        class="crop-frame overflow-hidden rounded-3xl border border-line-strong bg-paper-2 shadow-[0_30px_80px_-50px_rgba(20,24,30,0.45)]"
+      >
+        <!-- chrome bar -->
+        <div
+          class="flex items-center justify-between gap-3 border-b border-line bg-panel px-4 py-2.5"
+        >
+          <div class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="ml-2 font-mono text-[0.72rem] text-ink-faint">support.musa</span>
+          </div>
+          <span class="font-mono text-[0.7rem] text-ink-faint">@dx,dy of generosity</span>
+        </div>
+
+        <div class="grid gap-10 p-6 sm:p-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <!-- ---- gauge + amount control ---- -->
+          <div class="flex flex-col items-center">
+            <div class="relative h-[230px] w-[230px]">
+              <svg viewBox="0 0 200 200" class="h-full w-full -rotate-0">
+                <!-- track -->
+                <circle
+                  cx="100" cy="100" r="84" fill="none"
+                  class="text-line-strong" stroke="currentColor" stroke-width="10"
+                  stroke-linecap="round" pathLength="100"
+                  stroke-dasharray="75 100" transform="rotate(135 100 100)"
+                ></circle>
+                <!-- value arc -->
+                <circle
+                  data-gauge cx="100" cy="100" r="84" fill="none"
+                  class="text-accent" stroke="currentColor" stroke-width="10"
+                  stroke-linecap="round" pathLength="100"
+                  stroke-dasharray="0 100" transform="rotate(135 100 100)"
+                  style="transition: stroke-dasharray .35s cubic-bezier(.16,1,.3,1);"
+                ></circle>
+                <!-- tick marks every 27 units (~ each 90° gridline of the dial) -->
+                <g class="text-line-strong" stroke="currentColor" stroke-width="1.5" opacity="0.7">
+                  <line x1="100" y1="22" x2="100" y2="30"></line>
+                  <line x1="178" y1="100" x2="170" y2="100"></line>
+                  <line x1="22" y1="100" x2="30" y2="100"></line>
+                </g>
+              </svg>
+              <!-- center readout -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="font-mono text-xs text-ink-faint">SUPPORT</span>
+                <span class="font-display text-4xl font-semibold tabular-nums text-ink">
+                  ₹<span data-amount>500</span>
+                </span>
+                <span data-impact-emoji class="mt-1 text-2xl">🔧</span>
+              </div>
+            </div>
+
+            <p
+              data-impact
+              class="mt-3 text-center font-mono text-sm text-ink-soft"
+            >
+              A day of focused maintenance
+            </p>
+          </div>
+
+          <!-- ---- tiers + slider ---- -->
+          <div>
+            <p class="font-mono text-xs uppercase tracking-[0.2em] text-ink-faint">
+              Choose a level — or drag the dial
+            </p>
+
+            <!-- preset tiers -->
+            <div data-tiers class="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              <button type="button" class="tier" data-tier="150"><span class="text-lg">☕</span><b>₹150</b><small>coffee</small></button>
+              <button type="button" class="tier is-active" data-tier="500"><span class="text-lg">🔧</span><b>₹500</b><small>a day</small></button>
+              <button type="button" class="tier" data-tier="1500"><span class="text-lg">🚀</span><b>₹1500</b><small>a feature</small></button>
+              <button type="button" class="tier" data-tier="5000"><span class="text-lg">🏛️</span><b>₹5000</b><small>a release</small></button>
+            </div>
+
+            <!-- slider -->
+            <div class="mt-7">
+              <input
+                data-slider type="range" min="50" max="10000" step="50" value="500"
+                class="musa-range w-full" aria-label="Support amount in rupees"
+              />
+              <div class="mt-2 flex justify-between font-mono text-[0.7rem] text-ink-faint">
+                <span>₹50</span>
+                <span>drag to set your amount</span>
+                <span>₹10,000</span>
+              </div>
+            </div>
+
+            <p class="mt-6 font-mono text-[0.72rem] leading-relaxed text-ink-faint">
+              Amount drives the <span class="text-ink-soft">UPI</span> link below.
+              PayPal &amp; Ko-fi accept any amount — pick the method that fits.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================== METHOD CARDS ========================== -->
+    <section class="mx-auto max-w-7xl px-5 pb-24 pt-4 sm:px-8 sm:pb-28">
+      <SectionHeading
+        eyebrow="THREE WAYS TO HELP"
+        titleHtml='Pick a lane, <span class="text-accent">draw the line.</span>'
+        align="center"
+      >
+        <p class="mx-auto mt-4 max-w-lg text-center text-lg text-ink-soft">
+          Every contribution is a precise stroke toward the next release.
+        </p>
+      </SectionHeading>
+
+      <div class="mt-12 grid gap-5 md:grid-cols-3">
+        <!-- UPI -->
+        <article
+          data-method
+          class="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-paper-2 p-6 transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_24px_60px_-40px_rgba(20,24,30,0.45)]"
+        >
+          <div class="flex items-center justify-between">
+            <h3 class="font-display text-xl font-semibold">UPI</h3>
+            <span class="cad-chip">INR · India</span>
+          </div>
+          <p class="mt-2 text-sm text-ink-soft">Scan with any UPI app, or copy the ID.</p>
+
+          <!-- QR -->
+          <div class="mt-5 grid place-items-center rounded-xl border border-line bg-panel p-4">
+            <div class="h-36 w-36 [&_svg]:h-full [&_svg]:w-full" set:html={upiQr}></div>
+          </div>
+
+          <!-- ID + copy -->
+          <div class="mt-4 flex items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2">
+            <code class="flex-1 truncate font-mono text-xs text-ink">{UPI_ID}</code>
+            <button
+              type="button" data-copy={UPI_ID}
+              class="shrink-0 rounded-md border border-line-strong bg-paper-2 px-2.5 py-1 font-mono text-[0.7rem] text-ink-soft transition-colors hover:text-ink"
+            >Copy</button>
+          </div>
+
+          <a
+            data-upi-link href={UPI_BASE}
+            class="btn btn-accent mt-4 w-full justify-center py-2.5 text-sm"
+          >Pay via UPI app</a>
+        </article>
+
+        <!-- PayPal -->
+        <article
+          data-method
+          class="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-paper-2 p-6 transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_24px_60px_-40px_rgba(20,24,30,0.45)]"
+        >
+          <div class="flex items-center justify-between">
+            <h3 class="font-display text-xl font-semibold">PayPal</h3>
+            <span class="cad-chip">International</span>
+          </div>
+          <p class="mt-2 text-sm text-ink-soft">One-off support in your currency.</p>
+
+          <div class="mt-5 flex flex-1 items-center justify-center rounded-xl border border-line bg-panel p-8">
+            <svg viewBox="0 0 24 24" class="h-16 w-16 text-ink-soft" fill="currentColor" aria-hidden="true">
+              <path d="M7.4 21.5H4.6a.6.6 0 0 1-.59-.7l2.8-17.6a.9.9 0 0 1 .9-.76h6.3c2.9 0 5 1.5 4.6 4.6-.5 3.6-2.9 5.2-6.2 5.2H9.9a.9.9 0 0 0-.89.76l-.83 5.24a1 1 0 0 1-.78 1.26Z" opacity=".55"></path>
+              <path d="M9.9 18.8H7.3a.6.6 0 0 1-.6-.7L9.4 1.6a.9.9 0 0 1 .9-.76h6.3c3 0 5 1.6 4.6 4.7-.5 3.7-3 5.3-6.3 5.3h-2.6a.9.9 0 0 0-.9.76L10.7 17a1 1 0 0 1-.8 1.8Z"></path>
+            </svg>
+          </div>
+
+          <a
+            data-paypal href={PAYPAL} target="_blank" rel="noopener"
+            class="btn btn-ghost mt-4 w-full justify-center py-2.5 text-sm"
+          >Open PayPal.me</a>
+        </article>
+
+        <!-- Ko-fi -->
+        <article
+          data-method
+          class="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-paper-2 p-6 transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_24px_60px_-40px_rgba(20,24,30,0.45)]"
+        >
+          <div class="flex items-center justify-between">
+            <h3 class="font-display text-xl font-semibold">Ko-fi</h3>
+            <span class="cad-chip">☕ tips</span>
+          </div>
+          <p class="mt-2 text-sm text-ink-soft">Buy a coffee for a late-night commit.</p>
+
+          <div class="mt-5 flex flex-1 items-center justify-center rounded-xl border border-line bg-panel p-8">
+            <svg viewBox="0 0 24 24" class="h-16 w-16 text-ink-soft" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path d="M4 8h13v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Z" stroke-linejoin="round"></path>
+              <path d="M17 9h2.2a2.3 2.3 0 0 1 0 4.6H17" stroke-linecap="round"></path>
+              <path d="M7 3.5c-.6.7-.6 1.6 0 2.3M10.5 3.5c-.6.7-.6 1.6 0 2.3" stroke-linecap="round"></path>
+            </svg>
+          </div>
+
+          <a
+            href={KOFI} target="_blank" rel="noopener"
+            class="btn btn-ghost mt-4 w-full justify-center py-2.5 text-sm"
+          >Open Ko-fi</a>
+        </article>
+      </div>
+
+      <!-- thank-you note -->
+      <p class="mx-auto mt-12 max-w-xl text-center font-mono text-sm text-ink-soft">
+        Thank you ✦ every stroke counts. Prefer to <a href={base} class="text-accent underline-offset-4 hover:underline">explore the engine</a> first? Go right ahead.
+      </p>
+    </section>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  /* --- Range slider, themed to match the dial --- */
+  .musa-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-line-strong);
+    outline: none;
+    cursor: pointer;
+  }
+  .musa-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: 3px solid var(--color-paper-2);
+    box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--color-accent) 80%, transparent);
+    transition: transform 0.15s ease;
+  }
+  .musa-range::-webkit-slider-thumb:hover {
+    transform: scale(1.12);
+  }
+  .musa-range::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    border: 3px solid var(--color-paper-2);
+  }
+
+  /* --- Tier chips --- */
+  .tier {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    border-radius: 0.85rem;
+    border: 1px solid var(--color-line-strong);
+    background: var(--color-paper-2);
+    padding: 0.7rem 0.5rem;
+    transition:
+      transform 0.2s var(--ease-out-expo),
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+  .tier b {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .tier small {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--color-ink-faint);
+    letter-spacing: 0.03em;
+  }
+  .tier:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-line));
+  }
+  .tier.is-active {
+    border-color: var(--color-accent);
+    background: var(--color-accent-soft);
+  }
+
+  /* --- Spark particle (snap markers bursting on hover) --- */
+  :global(.spark) {
+    position: fixed;
+    z-index: 60;
+    pointer-events: none;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-accent);
+    will-change: transform, opacity;
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const UPI_BASE =
+    document.querySelector<HTMLAnchorElement>('[data-upi-link]')?.getAttribute('href') ?? '';
+
+  const slider = document.querySelector<HTMLInputElement>('[data-slider]');
+  const gauge = document.querySelector<SVGCircleElement>('[data-gauge]');
+  const amountEl = document.querySelector<HTMLElement>('[data-amount]');
+  const impactEl = document.querySelector<HTMLElement>('[data-impact]');
+  const emojiEl = document.querySelector<HTMLElement>('[data-impact-emoji]');
+  const upiLink = document.querySelector<HTMLAnchorElement>('[data-upi-link]');
+  const tiers = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-tier]'));
+
+  const MIN = 50;
+  const MAX = 10000;
+
+  // Amount → playful CAD impact mapping.
+  const IMPACT = [
+    { max: 300, emoji: '☕', text: 'A coffee for a late-night commit' },
+    { max: 800, emoji: '🔧', text: 'A day of focused maintenance' },
+    { max: 2000, emoji: '🚀', text: 'Fuel toward a new kernel feature' },
+    { max: 5000, emoji: '🛰️', text: 'Power a faster render path' },
+    { max: Infinity, emoji: '🏛️', text: 'Sponsor a whole release' },
+  ];
+
+  function fmt(n: number) {
+    return n.toLocaleString('en-IN');
+  }
+
+  function update(amount: number) {
+    const a = Math.min(MAX, Math.max(MIN, Math.round(amount)));
+    // gauge: 75 units = the 270° arc; fill proportionally (log-ish feel via sqrt).
+    const norm = Math.sqrt((a - MIN) / (MAX - MIN));
+    if (gauge) gauge.setAttribute('stroke-dasharray', `${(75 * norm).toFixed(2)} 100`);
+    if (amountEl) amountEl.textContent = fmt(a);
+    const tier = IMPACT.find((t) => a < t.max) ?? IMPACT[IMPACT.length - 1];
+    if (impactEl) impactEl.textContent = tier.text;
+    if (emojiEl) emojiEl.textContent = tier.emoji;
+    if (upiLink) upiLink.href = `${UPI_BASE}&am=${a}`;
+    // active tier highlight (exact matches only)
+    tiers.forEach((t) =>
+      t.classList.toggle('is-active', Number(t.dataset.tier) === a),
+    );
+  }
+
+  slider?.addEventListener('input', () => update(Number(slider.value)));
+  tiers.forEach((t) =>
+    t.addEventListener('click', () => {
+      const v = Number(t.dataset.tier);
+      if (slider) slider.value = String(v);
+      update(v);
+      burst(t);
+    }),
+  );
+
+  // --- Copy UPI ID ---
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+        const prev = btn.textContent;
+        btn.textContent = 'Copied ✓';
+        window.setTimeout(() => (btn.textContent = prev), 1500);
+      } catch {
+        /* clipboard unavailable — no-op */
+      }
+    });
+  });
+
+  // --- Snap-marker spark burst (delight) ---
+  const MARKERS = ['□', '△', '○', '✦', '+'];
+  function burst(target: Element) {
+    if (reduced) return;
+    const r = target.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    for (let i = 0; i < 12; i++) {
+      const s = document.createElement('span');
+      s.className = 'spark';
+      s.textContent = MARKERS[i % MARKERS.length];
+      s.style.left = `${cx}px`;
+      s.style.top = `${cy}px`;
+      document.body.appendChild(s);
+      const ang = (Math.PI * 2 * i) / 12 + Math.random() * 0.5;
+      const dist = 40 + Math.random() * 60;
+      gsap.fromTo(
+        s,
+        { x: 0, y: 0, opacity: 1, scale: 0.6, rotation: 0 },
+        {
+          x: Math.cos(ang) * dist,
+          y: Math.sin(ang) * dist - 20,
+          opacity: 0,
+          scale: 1.1,
+          rotation: (Math.random() - 0.5) * 120,
+          duration: 0.7 + Math.random() * 0.3,
+          ease: 'power2.out',
+          onComplete: () => s.remove(),
+        },
+      );
+    }
+  }
+
+  // Gentle burst when hovering a method card's CTA (debounced per element).
+  document.querySelectorAll<HTMLElement>('[data-method]').forEach((card) => {
+    let cooling = false;
+    card.addEventListener('pointerenter', () => {
+      if (cooling) return;
+      cooling = true;
+      burst(card.querySelector('a.btn') ?? card);
+      window.setTimeout(() => (cooling = false), 900);
+    });
+  });
+
+  // init
+  update(Number(slider?.value ?? 500));
+</script>
