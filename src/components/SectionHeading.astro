@@ -1,0 +1,41 @@
+---
+// Shared section heading — keeps every section's eyebrow + title consistent.
+// Pass `titleHtml` to colour part of the title (e.g. an accent span); otherwise
+// pass plain `title`. Default slot renders an intro paragraph below the title.
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  titleHtml?: string;
+  align?: 'left' | 'center';
+  class?: string;
+}
+const {
+  eyebrow,
+  title,
+  titleHtml,
+  align = 'left',
+  class: cls = '',
+} = Astro.props;
+const centered = align === 'center';
+---
+
+<div class:list={['max-w-2xl', centered && 'mx-auto text-center', cls]}>
+  {
+    eyebrow && (
+      <div class:list={['flex items-center gap-2.5', centered && 'justify-center']}>
+        <span class="h-1.5 w-1.5 rotate-45 bg-accent" aria-hidden="true" />
+        <p class="font-mono text-xs uppercase tracking-[0.22em] text-ink-faint">
+          {eyebrow}
+        </p>
+      </div>
+    )
+  }
+  {
+    titleHtml ? (
+      <h2 class="mt-4 text-4xl font-semibold sm:text-5xl" set:html={titleHtml} />
+    ) : title ? (
+      <h2 class="mt-4 text-4xl font-semibold sm:text-5xl">{title}</h2>
+    ) : null
+  }
+  <slot />
+</div>

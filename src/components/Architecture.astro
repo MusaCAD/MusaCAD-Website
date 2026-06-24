@@ -1,0 +1,458 @@
+---
+// ARCHITECTURE — "under the hood" diagram of Musa CAD's three-thread design.
+// Three labelled nodes (UI/Command, Geometry/Compute, Render) connected by two
+// arrows: an MPSC command queue and a lock-free triple-buffered RenderSnapshot.
+// Built as inline SVG so the connecting paths can DRAW IN on scroll and carry a
+// travelling "packet" dot to visualise data flow. Reduced motion -> full static
+// diagram, no draw-in, no dots.
+import SectionHeading from './SectionHeading.astro';
+import { ARCHITECTURE_URL } from '../data/site';
+
+// The three pipeline nodes. Copy is drawn verbatim from the architecture facts.
+const nodes = [
+  {
+    key: 'ui',
+    label: 'UI / Command thread',
+    role: 'Qt event loop',
+    lines: ['Turns input into Command', 'messages onto an MPSC queue.'],
+  },
+  {
+    key: 'geo',
+    label: 'Geometry / Compute thread',
+    role: 'Owns the SoA GeometryStore + kernel',
+    lines: [
+      'Applies commands, runs the kernel,',
+      'builds RenderSnapshots. Only thread',
+      'that touches the store.',
+    ],
+  },
+  {
+    key: 'render',
+    label: 'Render thread',
+    role: 'Owns GPU device / swapchain',
+    lines: ['Draws the latest snapshot', 'lock-free at 144 Hz+.'],
+  },
+];
+---
+
+<section id="architecture" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
+  <SectionHeading
+    eyebrow="UNDER THE HOOD"
+    titleHtml='Three threads, <span class="text-accent">no shared mutable state</span>.'
+  >
+    <p class="mt-4 text-lg text-ink-soft">
+      Work flows one way: the UI thread queues commands, the geometry thread owns
+      the data and builds snapshots, and the render thread draws them — each
+      hand-off is a lock-free message, never a shared lock.
+    </p>
+  </SectionHeading>
+
+  <!-- ============================ DIAGRAM ============================ -->
+  <div
+    data-arch
+    class="crop-frame mt-14 overflow-hidden rounded-2xl border border-line-strong bg-paper-2 shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]"
+  >
+    <!-- chrome bar -->
+    <div
+      class="flex items-center justify-between gap-3 border-b border-line bg-panel px-3.5 py-2.5"
+    >
+      <span class="font-mono text-[0.72rem] text-ink-faint">data-flow.musa</span>
+      <span class="font-mono text-[0.7rem] text-ink-faint hidden sm:inline">
+        MPSC → triple buffer
+      </span>
+    </div>
+
+    <div class="relative p-5 sm:p-8 lg:p-10">
+      <!--
+        Responsive inline SVG. viewBox is fixed; the SVG scales to its box.
+        Layout: three node rectangles in a row (vertical stack reflows visually
+        on small screens via the viewBox aspect, but to stay legible at 375px we
+        render a SEPARATE stacked layout below for mobile and hide the SVG there.)
+      -->
+      <svg
+        data-arch-svg
+        viewBox="0 0 1000 320"
+        class="hidden h-auto w-full select-none sm:block"
+        role="img"
+        aria-label="Three-thread architecture: the UI / Command thread sends command messages over a multi-producer single-consumer queue to the Geometry / Compute thread, which sends RenderSnapshots over a lock-free triple buffer to the Render thread."
+      >
+        <!-- blueprint grid backdrop -->
+        <defs>
+          <pattern
+            id="archGrid"
+            width="40"
+            height="40"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M40 0H0V40"
+              fill="none"
+              stroke="var(--color-grid, #cfd8e3)"
+              stroke-width="0.5"
+              opacity="0.35"></path>
+          </pattern>
+          <!-- arrowhead for the connecting paths -->
+          <marker
+            id="archArrow"
+            viewBox="0 0 10 10"
+            refX="8"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path d="M0 0L10 5L0 10z" fill="var(--color-accent, #f73f28)"></path>
+          </marker>
+        </defs>
+
+        <rect
+          x="0"
+          y="0"
+          width="1000"
+          height="320"
+          fill="url(#archGrid)"></rect>
+
+        <!-- ============ connecting arrows (drawn first, behind nodes edges) ============ -->
+        <!-- UI -> Geometry -->
+        <path
+          data-arch-path
+          d="M310 160 H410"
+          fill="none"
+          stroke="var(--color-accent, #f73f28)"
+          stroke-width="2"
+          marker-end="url(#archArrow)"></path>
+        <!-- Geometry -> Render -->
+        <path
+          data-arch-path
+          d="M690 160 H790"
+          fill="none"
+          stroke="var(--color-accent, #f73f28)"
+          stroke-width="2"
+          marker-end="url(#archArrow)"></path>
+
+        <!-- arrow labels -->
+        <g data-arch-label class="font-mono">
+          <text
+            x="360"
+            y="138"
+            text-anchor="middle"
+            font-size="13"
+            fill="var(--color-ink, #14181e)"
+            font-family="var(--font-mono)">MPSC queue</text>
+          <text
+            x="360"
+            y="190"
+            text-anchor="middle"
+            font-size="11"
+            fill="var(--color-ink-faint, #8a909c)"
+            font-family="var(--font-mono)">Command msgs</text>
+        </g>
+        <g data-arch-label class="font-mono">
+          <text
+            x="740"
+            y="138"
+            text-anchor="middle"
+            font-size="13"
+            fill="var(--color-ink, #14181e)"
+            font-family="var(--font-mono)">triple buffer</text>
+          <text
+            x="740"
+            y="190"
+            text-anchor="middle"
+            font-size="11"
+            fill="var(--color-ink-faint, #8a909c)"
+            font-family="var(--font-mono)">RenderSnapshot</text>
+        </g>
+
+        <!-- ====================== travelling packet dots ====================== -->
+        <circle
+          data-arch-packet="0"
+          r="4"
+          fill="var(--color-accent, #f73f28)"
+          opacity="0"></circle>
+        <circle
+          data-arch-packet="1"
+          r="4"
+          fill="var(--color-accent-2, #0fa968)"
+          opacity="0"></circle>
+
+        <!-- ============================ nodes ============================ -->
+        <!-- UI / Command -->
+        <g data-arch-node>
+          <rect
+            x="20"
+            y="100"
+            width="290"
+            height="120"
+            rx="10"
+            fill="var(--color-paper, #faf9f6)"
+            stroke="var(--color-line-strong, #d8d3c6)"
+            stroke-width="1.5"></rect>
+          <text
+            x="40"
+            y="135"
+            font-size="16"
+            font-weight="600"
+            fill="var(--color-ink, #14181e)"
+            font-family="var(--font-display)">UI / Command thread</text>
+          <text
+            x="40"
+            y="160"
+            font-size="12"
+            fill="var(--color-accent, #f73f28)"
+            font-family="var(--font-mono)">Qt event loop</text>
+          <text
+            x="40"
+            y="184"
+            font-size="11.5"
+            fill="var(--color-ink-soft, #586070)">Turns input into Command</text>
+          <text
+            x="40"
+            y="200"
+            font-size="11.5"
+            fill="var(--color-ink-soft, #586070)">messages onto an MPSC queue.</text>
+        </g>
+
+        <!-- Geometry / Compute -->
+        <g data-arch-node>
+          <rect
+            x="410"
+            y="100"
+            width="280"
+            height="120"
+            rx="10"
+            fill="var(--color-paper, #faf9f6)"
+            stroke="var(--color-accent, #f73f28)"
+            stroke-width="1.5"></rect>
+          <text
+            x="430"
+            y="135"
+            font-size="16"
+            font-weight="600"
+            fill="var(--color-ink, #14181e)"
+            font-family="var(--font-display)">Geometry / Compute</text>
+          <text
+            x="430"
+            y="160"
+            font-size="12"
+            fill="var(--color-accent, #f73f28)"
+            font-family="var(--font-mono)">SoA GeometryStore + kernel</text>
+          <text
+            x="430"
+            y="184"
+            font-size="11.5"
+            fill="var(--color-ink-soft, #586070)">Applies commands, runs the</text>
+          <text
+            x="430"
+            y="200"
+            font-size="11.5"
+            fill="var(--color-ink-soft, #586070)">kernel, builds RenderSnapshots.</text>
+        </g>
+
+        <!-- Render -->
+        <g data-arch-node>
+          <rect
+            x="790"
+            y="100"
+            width="190"
+            height="120"
+            rx="10"
+            fill="var(--color-paper, #faf9f6)"
+            stroke="var(--color-line-strong, #d8d3c6)"
+            stroke-width="1.5"></rect>
+          <text
+            x="810"
+            y="135"
+            font-size="16"
+            font-weight="600"
+            fill="var(--color-ink, #14181e)"
+            font-family="var(--font-display)">Render thread</text>
+          <text
+            x="810"
+            y="160"
+            font-size="12"
+            fill="var(--color-accent, #f73f28)"
+            font-family="var(--font-mono)">GPU swapchain</text>
+          <text
+            x="810"
+            y="184"
+            font-size="11.5"
+            fill="var(--color-ink-soft, #586070)">Draws the latest snapshot</text>
+          <text
+            x="810"
+            y="200"
+            font-size="11.5"
+            fill="var(--color-ink-soft, #586070)">lock-free at 144 Hz+.</text>
+        </g>
+
+        <!-- endpoint snap markers on the node corners (CAD motif) -->
+        <g fill="none" stroke="var(--color-accent-2, #0fa968)" stroke-width="1.2" opacity="0.8">
+          <rect x="16" y="96" width="7" height="7"></rect>
+          <rect x="976" y="217" width="7" height="7"></rect>
+        </g>
+      </svg>
+
+      <!-- ============ MOBILE: stacked, accessible static layout (<640px) ============ -->
+      <ol class="space-y-3 sm:hidden" aria-label="Three-thread architecture pipeline">
+        {
+          nodes.map((n, i) => (
+            <li>
+              <div
+                class:list={[
+                  'rounded-xl border bg-paper p-4',
+                  n.key === 'geo' ? 'border-accent' : 'border-line-strong',
+                ]}
+              >
+                <h3 class="font-display text-base font-semibold text-ink">
+                  {n.label}
+                </h3>
+                <p class="mt-1 font-mono text-xs text-accent">{n.role}</p>
+                <p class="mt-2 text-sm text-ink-soft">{n.lines.join(' ')}</p>
+              </div>
+              {i < nodes.length - 1 && (
+                <div
+                  class="flex items-center gap-2 px-4 py-2 font-mono text-[0.7rem] text-ink-faint"
+                  aria-hidden="true"
+                >
+                  <span class="text-accent">▼</span>
+                  {i === 0 ? 'MPSC command queue' : 'lock-free triple buffer'}
+                </div>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <!-- caption strip -->
+    <div
+      class="flex flex-col gap-2 border-t border-line bg-panel px-5 py-4 font-mono text-[0.72rem] text-ink-faint sm:flex-row sm:items-center sm:justify-between sm:px-8"
+    >
+      <span class="flex items-center gap-2">
+        <span class="h-1.5 w-1.5 rotate-45 bg-accent-2" aria-hidden="true"></span>
+        No shared mutable state — every hand-off is a message.
+      </span>
+      <span class="text-ink-soft">
+        Triple buffer &gt; seqlock: the renderer reads continuously at 144 Hz+
+        while geometry writes are bursty.
+      </span>
+    </div>
+  </div>
+
+  <!-- read-more link -->
+  <div class="mt-8 flex justify-center">
+    <a
+      href={ARCHITECTURE_URL}
+      target="_blank"
+      rel="noopener"
+      class="btn btn-ghost px-5 py-3 text-[0.95rem]"
+    >
+      <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M4 5h11a2 2 0 0 1 2 2v13M4 5v13a2 2 0 0 0 2 2h11M4 5l5 4M9 9h5"
+          stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+      Read the architecture
+    </a>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  const root = document.querySelector<HTMLElement>('[data-arch]');
+  if (root) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const nodes = gsap.utils.toArray<SVGGElement>('[data-arch-node]');
+    const paths = gsap.utils.toArray<SVGPathElement>('[data-arch-path]');
+    const labels = gsap.utils.toArray<SVGGElement>('[data-arch-label]');
+    const packets = gsap.utils.toArray<SVGCircleElement>('[data-arch-packet]');
+
+    // Prepare each connecting path for a stroke-dashoffset "draw-in".
+    const pathLens = paths.map((p) => {
+      const len = p.getTotalLength();
+      return len;
+    });
+
+    if (reduced) {
+      // Static final state: everything visible, no animation, no packets.
+      gsap.set(nodes, { opacity: 1, scale: 1 });
+      gsap.set(labels, { opacity: 1 });
+      paths.forEach((p) =>
+        gsap.set(p, { strokeDasharray: 'none', strokeDashoffset: 0, opacity: 1 }),
+      );
+      // packets stay hidden (opacity 0 from markup)
+    } else {
+      // Initial hidden state.
+      gsap.set(nodes, { opacity: 0, scale: 0.92, transformOrigin: '50% 50%' });
+      gsap.set(labels, { opacity: 0 });
+      paths.forEach((p, i) => {
+        gsap.set(p, {
+          strokeDasharray: pathLens[i],
+          strokeDashoffset: pathLens[i],
+          opacity: 1,
+        });
+      });
+
+      // Scroll-into-view sequence: nodes pop, then arrows draw, then labels.
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: root,
+          start: 'top 75%',
+          once: true,
+        },
+        defaults: { ease: 'power3.out' },
+        onComplete: startPackets,
+      });
+
+      tl.to(nodes, { opacity: 1, scale: 1, duration: 0.6, stagger: 0.18 })
+        .to(
+          paths[0],
+          { strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut' },
+          '-=0.25',
+        )
+        .to(labels[0], { opacity: 1, duration: 0.4 }, '-=0.2')
+        .to(
+          paths[1],
+          { strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut' },
+          '-=0.15',
+        )
+        .to(labels[1], { opacity: 1, duration: 0.4 }, '-=0.2');
+
+      // --- Travelling packet dots along each arrow (subtle infinite loop) ---
+      function startPackets() {
+        packets.forEach((dot, i) => {
+          const path = paths[i];
+          const len = pathLens[i];
+          // Animate a proxy 0->1 and map onto the path with getPointAtLength.
+          const proxy = { t: 0 };
+          gsap.to(proxy, {
+            t: 1,
+            duration: 1.4,
+            ease: 'power1.in',
+            repeat: -1,
+            repeatDelay: 0.9,
+            delay: i * 0.7,
+            onUpdate() {
+              const pt = path.getPointAtLength(proxy.t * len);
+              dot.setAttribute('cx', String(pt.x));
+              dot.setAttribute('cy', String(pt.y));
+              // fade in at the start, out near the end for a "shooting" feel
+              const o =
+                proxy.t < 0.12
+                  ? proxy.t / 0.12
+                  : proxy.t > 0.85
+                    ? (1 - proxy.t) / 0.15
+                    : 1;
+              dot.setAttribute('opacity', String(o));
+            },
+          });
+        });
+      }
+    }
+  }
+</script>

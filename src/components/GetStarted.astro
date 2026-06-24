@@ -1,0 +1,282 @@
+---
+// GET STARTED / BUILD — id="download".
+// A faux-terminal code block with the verbatim build commands + a working copy
+// button, the verbatim build prerequisites, cross-platform badges (Linux +
+// Windows), a "Read BUILD.md" ghost link, and the primary download CTA.
+// Copy is accurate to the VERBATIM FACTS; only a gentle reveal animation is used.
+import SectionHeading from './SectionHeading.astro';
+import { BUILD_URL, RELEASES_URL, LATEST_RELEASE, LICENSE } from '../data/site';
+
+// The three build commands, kept as data so the copy button and the rendered
+// lines stay in sync. Joined with newlines when copied to the clipboard.
+const BUILD_COMMANDS = [
+  'cmake --preset dev',
+  'cmake --build --preset dev',
+  'ctest --preset dev',
+];
+
+// Verbatim prerequisites — each is a short label + the required version detail.
+const PREREQS = [
+  { label: 'C++23 compiler', detail: 'GCC 13+ · Clang 17+ · MSVC 19.38+ (VS2022 17.8)' },
+  { label: 'CMake', detail: '3.25+ (Presets v6)' },
+  { label: 'Ninja', detail: '1.10+' },
+  { label: 'Qt6', detail: 'Core / Gui / Widgets · 6.4+' },
+  { label: 'Vulkan SDK / loader', detail: '1.3+' },
+];
+---
+
+<section id="download" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
+  <SectionHeading
+    eyebrow="CLONE AND BUILD CLEAN"
+    titleHtml='Get it building in <span class="text-accent">three commands.</span>'
+  >
+    <p class="mt-4 text-lg text-ink-soft">
+      No third-party CAD dependency. Configure, build, and test with CMake
+      presets — then grab a prebuilt release.
+    </p>
+  </SectionHeading>
+
+  <!-- Two columns on desktop: terminal on the left, prereqs/actions on the right. -->
+  <div class="mt-12 grid gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-8">
+    <!-- ============================ TERMINAL ============================ -->
+    <div
+      data-reveal
+      class="crop-frame overflow-hidden rounded-2xl border border-line-strong bg-paper-2 shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]"
+    >
+      <!-- faux terminal top-bar -->
+      <div
+        class="flex items-center justify-between gap-3 border-b border-line bg-panel px-3.5 py-2.5"
+      >
+        <div class="flex items-center gap-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+          <span class="ml-2 font-mono text-[0.72rem] text-ink-faint">bash — MusaCAD</span>
+        </div>
+        <!-- copy button: copies all three commands to the clipboard -->
+        <button
+          type="button"
+          data-copy
+          data-commands={BUILD_COMMANDS.join('\n')}
+          class="inline-flex items-center gap-1.5 rounded-md border border-line-strong bg-paper-2 px-2.5 py-1 font-mono text-[0.7rem] text-ink-soft transition-colors hover:border-ink/30 hover:text-ink"
+          aria-label="Copy build commands to clipboard"
+        >
+          <!-- copy glyph (hidden in the copied state via the [data-copied] swap) -->
+          <svg
+            data-copy-icon
+            viewBox="0 0 24 24"
+            class="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+            <path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round"></path>
+          </svg>
+          <!-- check glyph (shown only while copied) -->
+          <svg
+            data-check-icon
+            viewBox="0 0 24 24"
+            class="hidden h-3.5 w-3.5 text-accent-2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            aria-hidden="true"
+          >
+            <path d="M4 12.5 9.5 18 20 6" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <span data-copy-label>Copy</span>
+        </button>
+      </div>
+
+      <!-- command body: each line prefixed with a subtle, non-selectable $ prompt -->
+      <div class="px-4 py-5 font-mono text-[0.86rem] leading-7 sm:px-5">
+        <ol class="space-y-1">
+          {
+            BUILD_COMMANDS.map((cmd) => (
+              <li class="flex items-start gap-3">
+                <span class="select-none text-accent" aria-hidden="true">
+                  $
+                </span>
+                <code class="text-ink">{cmd}</code>
+              </li>
+            ))
+          }
+          <!-- trailing prompt with a blinking caret, purely decorative -->
+          <li class="flex items-start gap-3" aria-hidden="true">
+            <span class="select-none text-accent">$</span>
+            <span class="caret"></span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- footnote: the extra preset variants, as a mono detail strip -->
+      <div
+        class="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-line bg-panel px-4 py-2.5 font-mono text-[0.7rem] text-ink-faint sm:px-5"
+      >
+        <span class="text-ink-soft">presets:</span>
+        <span class="cad-chip">dev</span>
+        <span class="cad-chip">release</span>
+        <span class="cad-chip">tsan</span>
+      </div>
+    </div>
+
+    <!-- ====================== PREREQS + ACTIONS ====================== -->
+    <div data-reveal class="flex flex-col gap-6">
+      <!-- prerequisites card -->
+      <div class="rounded-2xl border border-line bg-panel/60 p-5 sm:p-6">
+        <div class="flex items-center gap-2.5">
+          <span class="h-1.5 w-1.5 rotate-45 bg-accent-2" aria-hidden="true"></span>
+          <h3 class="font-mono text-xs uppercase tracking-[0.22em] text-ink-faint">
+            Prerequisites
+          </h3>
+        </div>
+
+        <dl class="mt-4 divide-y divide-line">
+          {
+            PREREQS.map((p) => (
+              <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 py-2.5">
+                <dt class="text-[0.95rem] font-medium text-ink">{p.label}</dt>
+                <dd class="font-mono text-[0.78rem] text-ink-soft">{p.detail}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        <!-- cross-platform badges -->
+        <div class="mt-5 flex flex-wrap items-center gap-2">
+          <span class="font-mono text-[0.7rem] uppercase tracking-wider text-ink-faint">
+            Runs on
+          </span>
+          <!-- Linux pill -->
+          <span class="cad-chip" data-on>
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
+              <path d="M12 2c-2.2 0-3.5 1.9-3.5 4.2 0 1.5.5 2.4.5 3.6 0 1-.8 1.8-1.6 3-1 1.4-2 2.8-2 4.7 0 .8.3 1.4.8 1.9-.2.5-.3 1-.1 1.4.4.7 1.4.8 2.4.8.7 0 1.3-.1 1.9-.1.6 0 1.2.1 1.9.1 1 0 2-.1 2.4-.8.2-.4.1-.9-.1-1.4.5-.5.8-1.1.8-1.9 0-1.9-1-3.3-2-4.7-.8-1.2-1.6-2-1.6-3 0-1.2.5-2.1.5-3.6C15.5 3.9 14.2 2 12 2Zm-1.3 4.1c.4 0 .7.4.7.9s-.3.9-.7.9-.7-.4-.7-.9.3-.9.7-.9Zm2.6 0c.4 0 .7.4.7.9s-.3.9-.7.9-.7-.4-.7-.9.3-.9.7-.9Z"></path>
+            </svg>
+            Linux
+          </span>
+          <!-- Windows pill -->
+          <span class="cad-chip" data-on>
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
+              <path d="M3 5.5 11 4.3v7.2H3V5.5Zm0 13L11 19.7v-7.1H3v5.9Zm9-14.4L21 3v8.5h-9V4.1Zm0 8.5h9V21l-9-1.1v-7.3Z"></path>
+            </svg>
+            Windows
+          </span>
+        </div>
+      </div>
+
+      <!-- primary actions -->
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <a
+            href={RELEASES_URL}
+            target="_blank"
+            rel="noopener"
+            class="btn btn-accent px-5 py-3 text-[0.97rem]"
+          >
+            <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M5 21h14" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            Download
+            <span class="font-mono text-xs opacity-80">{LATEST_RELEASE}</span>
+          </a>
+          <a
+            href={BUILD_URL}
+            target="_blank"
+            rel="noopener"
+            class="btn btn-ghost px-5 py-3 text-[0.97rem]"
+          >
+            <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M5 4h9l5 5v11a0 0 0 0 1 0 0H5a0 0 0 0 1 0 0V4Z" stroke-linejoin="round"></path>
+              <path d="M14 4v5h5M8.5 13.5 11 16l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            Read BUILD.md
+          </a>
+        </div>
+
+        <!-- license note -->
+        <p class="px-1 font-mono text-[0.72rem] text-ink-faint">
+          <span class="text-ink-soft">{LICENSE}</span> · clone-and-build clean
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // --- Gentle reveal-on-enter for the two cards ---
+  const revealEls = gsap.utils.toArray<HTMLElement>('#download [data-reveal]');
+  if (reduced) {
+    // Reduced motion: show final state immediately, create no ScrollTrigger.
+    gsap.set(revealEls, { opacity: 1, y: 0 });
+  } else {
+    gsap.set(revealEls, { opacity: 0, y: 22 });
+    gsap.to(revealEls, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      stagger: 0.12,
+      scrollTrigger: {
+        trigger: '#download',
+        start: 'top 80%',
+        once: true,
+      },
+    });
+  }
+
+  // --- Working copy button ---
+  const copyBtn = document.querySelector<HTMLButtonElement>('#download [data-copy]');
+  const copyLabel = copyBtn?.querySelector<HTMLElement>('[data-copy-label]');
+  const copyIcon = copyBtn?.querySelector<HTMLElement>('[data-copy-icon]');
+  const checkIcon = copyBtn?.querySelector<HTMLElement>('[data-check-icon]');
+
+  if (copyBtn) {
+    let resetTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const showCopied = () => {
+      if (copyLabel) copyLabel.textContent = 'Copied';
+      copyIcon?.classList.add('hidden');
+      checkIcon?.classList.remove('hidden');
+      copyBtn.classList.add('text-accent-2', 'border-accent-2/50');
+      // Revert to the idle state after ~1.5s.
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        if (copyLabel) copyLabel.textContent = 'Copy';
+        checkIcon?.classList.add('hidden');
+        copyIcon?.classList.remove('hidden');
+        copyBtn.classList.remove('text-accent-2', 'border-accent-2/50');
+      }, 1500);
+    };
+
+    copyBtn.addEventListener('click', async () => {
+      const text = copyBtn.dataset.commands ?? '';
+      try {
+        await navigator.clipboard.writeText(text);
+        showCopied();
+      } catch {
+        // Fallback for browsers/contexts without the async clipboard API.
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand('copy');
+          showCopied();
+        } catch {
+          /* give up silently — the commands are still visible on screen */
+        }
+        ta.remove();
+      }
+    });
+  }
+</script>

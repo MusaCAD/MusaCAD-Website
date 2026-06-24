@@ -1,0 +1,106 @@
+---
+// Base document shell: fonts, SEO/meta, favicons, the blueprint background,
+// and the site-wide smooth-scroll bootstrap. Every page renders inside this.
+
+// Self-hosted variable fonts (bundled by Vite, no external requests).
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Musa CAD — CAD that moves at 144 Hz',
+  description = 'A high-performance, multi-threaded 2D CAD engine in modern C++23. GPU-accelerated, data-oriented, and clone-and-build clean.',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL('/musacad_mark.png', Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#faf9f6" />
+
+    <!-- Mark JS as present so reveal targets can hide pre-animation without
+         risking a permanently-hidden state for no-JS users. -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+
+    <!-- Favicons (optimized raster derived from the official logo) -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+
+  <body>
+    <!-- Faint blueprint grid, fixed behind everything, parallaxes on scroll -->
+    <div class="blueprint-bg" data-blueprint aria-hidden="true"></div>
+
+    <slot />
+
+    <script>
+      import { initSmoothScroll, scrollTo } from '../scripts/smooth-scroll';
+
+      const lenis = initSmoothScroll();
+
+      // Anchored nav: intercept in-page links and let Lenis ease to them,
+      // offsetting for the sticky navbar height.
+      const navH =
+        parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue('--nav-h'),
+        ) * 16 || 72;
+
+      document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
+        a.addEventListener('click', (e) => {
+          const id = a.getAttribute('href');
+          if (!id || id === '#') return;
+          const target = document.querySelector(id);
+          if (!target) return;
+          e.preventDefault();
+          scrollTo(target as HTMLElement, -navH);
+          history.replaceState(null, '', id);
+        });
+      });
+
+      // Faint parallax on the blueprint background.
+      const bp = document.querySelector<HTMLElement>('[data-blueprint]');
+      const parallax = (scroll: number) => {
+        if (bp) bp.style.transform = `translate3d(0, ${scroll * -0.04}px, 0)`;
+      };
+      if (lenis) {
+        lenis.on('scroll', ({ scroll }: { scroll: number }) => parallax(scroll));
+      } else {
+        window.addEventListener(
+          'scroll',
+          () => parallax(window.scrollY),
+          { passive: true },
+        );
+      }
+    </script>
+  </body>
+</html>

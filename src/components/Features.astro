@@ -1,0 +1,175 @@
+---
+// FEATURES GRID — the 8 verbatim feature cards (README "What's inside").
+// Each card is a bordered drawing-sheet panel on paper-2 with a CAD snap-marker
+// glyph, a font-display title, ink-soft detail copy, and a mono micro-tag.
+// The first card spans wider (md:col-span-2) for rhythm. Cards lift + reveal an
+// accent corner tick on hover; they reveal on scroll with a small stagger.
+import SectionHeading from './SectionHeading.astro';
+
+// --- Feature data (copy is VERBATIM from the README facts) -------------------
+// `glyph` is a small inline SVG drawn below; `marker` is the snap symbol shown
+// in the icon tile; `tag` is the mono micro-detail.
+type Feature = {
+  marker: string; // snap-style glyph in the icon tile
+  title: string;
+  detail: string;
+  tag: string;
+  wide?: boolean; // span two columns at md+ for layout rhythm
+};
+
+const features: Feature[] = [
+  {
+    marker: '▤',
+    title: 'Three-thread architecture',
+    detail:
+      'UI/command, geometry/compute, and render threads communicate ONLY via a multi-producer command queue and a lock-free triple-buffered snapshot. No shared mutable state.',
+    tag: 'MPSC · lock-free',
+    wide: true,
+  },
+  {
+    marker: '□',
+    title: 'Data-oriented core',
+    detail:
+      'Cache-friendly Structure-of-Arrays storage indexed by generational handles; no virtual dispatch on hot paths.',
+    tag: '~32 ns/line · 1M in ~32 ms',
+  },
+  {
+    marker: '○',
+    title: 'Own geometry kernel',
+    detail:
+      'A narrow IGeometryKernel interface with a complete native 2D backend (NativeKernel2D). No third-party CAD dependency.',
+    tag: 'clone-and-build clean',
+  },
+  {
+    marker: '◈',
+    title: 'GPU-accelerated viewport',
+    detail:
+      'Backend-agnostic RAII GPU abstraction (OpenGL 4.6 DSA backend). Instanced rendering draws a 1,000,000-primitive scene in ~4–6 draw calls.',
+    tag: '~420–490 FPS offscreen',
+  },
+  {
+    marker: '⌗',
+    title: 'AutoCAD-style command line',
+    detail:
+      'Table-driven aliases (L, C, PL, A, REC, ERASE, U, ZOOM); absolute / relative / polar input with history, ENTER-repeat, ESC-cancel.',
+    tag: '@dx,dy · @dist<angle',
+  },
+  {
+    marker: '△',
+    title: 'Snapping & drawing aids',
+    detail:
+      'OSNAP (endpoint, midpoint, center, intersection, nearest), ortho + polar tracking, grid snap, cursor-pick selection.',
+    tag: 'F3 osnap · F8 ortho',
+  },
+  {
+    marker: '↺',
+    title: 'Undo / redo + shortcuts',
+    detail:
+      'Classic toggles — F3 osnap, F7 grid, F8 ortho, F9 snap, F10 polar, F12 dynamic input — with full undo/redo.',
+    tag: 'Ctrl+Z · Ctrl+Y',
+  },
+  {
+    marker: '⇄',
+    title: 'DXF read/write built in',
+    detail:
+      'DWG import/export via an external converter (ODA File Converter or LibreDWG) invoked as a subprocess, never linked — so Musa CAD stays LGPL-clean.',
+    tag: '.musa · DXF · DWG',
+  },
+];
+---
+
+<section id="features" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
+  <SectionHeading
+    eyebrow="WHAT'S INSIDE"
+    titleHtml='Engineered like a <span class="text-accent">precision instrument</span>'
+  >
+    <p class="mt-4 text-lg text-ink-soft">
+      Eight load-bearing systems, no shortcuts. Three threads, a data-oriented
+      core, and a GPU viewport that never blinks.
+    </p>
+  </SectionHeading>
+
+  <!-- 1 col mobile · 2 col md · 4 col lg. The wide card spans 2 at md+. -->
+  <ul
+    data-feature-grid
+    class="mt-14 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
+  >
+    {
+      features.map((f) => (
+        <li
+          data-feature-card
+          class:list={[
+            // group enables hover-driven children; relative for the corner tick.
+            'group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-paper-2 p-6 transition-[transform,border-color,box-shadow] duration-300 ease-out',
+            'hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_24px_60px_-40px_rgba(20,24,30,0.45)]',
+            f.wide && 'md:col-span-2',
+          ]}
+        >
+          {/* accent corner tick — drawn in on hover (transform/opacity only) */}
+          <span
+            aria-hidden="true"
+            class="pointer-events-none absolute right-4 top-4 h-3.5 w-3.5 origin-top-right scale-0 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:scale-100 group-hover:opacity-100"
+          >
+            <span class="absolute right-0 top-0 h-3.5 w-px bg-accent" />
+            <span class="absolute right-0 top-0 h-px w-3.5 bg-accent" />
+          </span>
+
+          {/* CAD-style icon tile with a snap marker glyph */}
+          <span
+            aria-hidden="true"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line bg-panel font-mono text-lg leading-none text-ink-soft transition-colors duration-300 group-hover:border-accent/40 group-hover:text-accent"
+          >
+            {f.marker}
+          </span>
+
+          <h3 class="mt-5 font-display text-xl font-semibold text-ink">
+            {f.title}
+          </h3>
+
+          <p class="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft">
+            {f.detail}
+          </p>
+
+          {/* mono micro-tag pinned to the bottom; sliding underline on hover */}
+          <div class="mt-auto pt-5">
+            <span class="relative inline-block font-mono text-xs tracking-wide text-ink-faint transition-colors duration-300 group-hover:text-ink">
+              {f.tag}
+              <span class="absolute -bottom-1 left-0 h-px w-full origin-left scale-x-0 bg-accent transition-transform duration-300 ease-out group-hover:scale-x-100" />
+            </span>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cards = gsap.utils.toArray<HTMLElement>('[data-feature-card]');
+  const grid = document.querySelector<HTMLElement>('[data-feature-grid]');
+
+  if (cards.length && grid) {
+    if (reduced) {
+      // Reduced motion: final state, no stagger, no ScrollTrigger.
+      gsap.set(cards, { opacity: 1, y: 0 });
+    } else {
+      gsap.set(cards, { opacity: 0, y: 22 });
+      gsap.to(cards, {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        ease: 'power3.out',
+        stagger: 0.08,
+        scrollTrigger: {
+          trigger: grid,
+          start: 'top 80%',
+          once: true,
+        },
+      });
+    }
+  }
+</script>

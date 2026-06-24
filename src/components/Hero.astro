@@ -1,0 +1,263 @@
+---
+// HERO — the showpiece. Copy on the left (drawn verbatim from the README),
+// an interactive CAD viewport on the right (Three.js canvas that draws itself,
+// live coordinate HUD, snap chips, and an AutoCAD-style command line).
+import { RELEASES_URL, REPO_URL, LATEST_RELEASE } from '../data/site';
+---
+
+<section
+  id="top"
+  data-hero
+  class="relative overflow-hidden"
+>
+  <div
+    class="mx-auto max-w-7xl px-5 pb-16 pt-[calc(var(--nav-h)+2.5rem)] sm:px-8 lg:min-h-screen lg:pb-24 lg:pt-[calc(var(--nav-h)+4rem)]"
+  >
+    <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_1fr] lg:gap-10">
+      <!-- ============================== LEFT: copy ============================== -->
+      <div class="max-w-xl">
+        <!-- eyebrow -->
+        <div
+          data-reveal
+          class="mb-6 inline-flex items-center gap-2.5 rounded-full border border-line-strong bg-paper-2/80 py-1.5 pl-2.5 pr-3.5 font-mono text-[0.72rem] tracking-wide text-ink-soft"
+        >
+          <span class="relative flex h-2 w-2">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
+          </span>
+          2D CAD ENGINE · MODERN C++23
+        </div>
+
+        <!-- headline -->
+        <h1
+          data-reveal
+          class="text-5xl font-semibold sm:text-6xl lg:text-[4.6rem]"
+        >
+          CAD that moves<br />
+          at <span class="text-accent">144&#8202;Hz.</span>
+        </h1>
+
+        <!-- subhead (from README) -->
+        <p
+          data-reveal
+          class="mt-6 max-w-lg text-lg leading-relaxed text-ink-soft"
+        >
+          A high-performance, multi-threaded 2D CAD engine in modern C++23.
+          GPU-accelerated, data-oriented, and
+          <span class="text-ink">clone-and-build clean.</span>
+        </p>
+
+        <!-- CTAs -->
+        <div data-reveal class="mt-9 flex flex-wrap items-center gap-3">
+          <a
+            href={RELEASES_URL}
+            target="_blank"
+            rel="noopener"
+            class="btn btn-accent px-5 py-3 text-[0.97rem]"
+          >
+            <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M5 21h14" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            Download
+            <span class="font-mono text-xs opacity-80">{LATEST_RELEASE}</span>
+          </a>
+          <a
+            href={REPO_URL}
+            target="_blank"
+            rel="noopener"
+            class="btn btn-ghost px-5 py-3 text-[0.97rem]"
+          >
+            <svg viewBox="0 0 16 16" class="h-[18px] w-[18px]" fill="currentColor" aria-hidden="true">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path>
+            </svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <!-- meta stat strip -->
+        <dl
+          data-reveal
+          class="mt-10 flex flex-wrap gap-x-7 gap-y-3 font-mono text-xs text-ink-faint"
+        >
+          <div class="flex items-center gap-2">
+            <span class="text-accent">144 Hz+</span> refresh target
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-ink">1M</span> primitives
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-ink">~4–6</span> draw calls
+          </div>
+        </dl>
+      </div>
+
+      <!-- ====================== RIGHT: interactive viewport ===================== -->
+      <div data-reveal class="relative">
+        <!-- decorative dimension note -->
+        <div
+          class="absolute -top-7 left-1 hidden font-mono text-[0.68rem] text-ink-faint sm:block"
+          aria-hidden="true"
+        >
+          @0,0 ─ origin
+        </div>
+
+        <div
+          data-viewport
+          class="crop-frame overflow-hidden rounded-2xl border border-line-strong bg-paper-2 shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]"
+        >
+          <!-- chrome bar -->
+          <div
+            class="flex items-center justify-between gap-3 border-b border-line bg-panel px-3.5 py-2.5"
+          >
+            <div class="flex items-center gap-2">
+              <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+              <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+              <span class="ml-2 font-mono text-[0.72rem] text-ink-faint">untitled.musa</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="cad-chip" data-on>□ END</span>
+              <span class="cad-chip hidden sm:inline-flex">△ MID</span>
+              <span class="cad-chip hidden sm:inline-flex">○ CEN</span>
+              <span class="cad-chip" data-on>F8</span>
+            </div>
+          </div>
+
+          <!-- canvas viewport -->
+          <div class="relative aspect-[5/4] sm:aspect-[16/11]">
+            <canvas
+              data-hero-canvas
+              class="cad-cursor block h-full w-full"
+              aria-label="Interactive CAD viewport drawing geometry"
+            ></canvas>
+
+            <!-- coordinate HUD -->
+            <div
+              class="pointer-events-none absolute right-3 top-3 rounded-md border border-line/70 bg-paper-2/80 px-2.5 py-1.5 font-mono text-[0.7rem] text-ink-soft backdrop-blur-sm"
+            >
+              <span class="text-ink-faint">X</span>
+              <span data-hud-x class="text-ink">1240.00</span>
+              <span class="mx-1 text-ink-faint">Y</span>
+              <span data-hud-y class="text-ink">860.00</span>
+            </div>
+
+            <!-- snap label -->
+            <div
+              class="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 font-mono text-[0.7rem] text-accent-2"
+            >
+              <span class="inline-block h-1.5 w-1.5 rotate-45 border border-accent-2"></span>
+              <span data-snap-label>endpoint</span>
+            </div>
+
+            <!-- reduced-motion fallback note (only matters if WebGL is unavailable) -->
+            <noscript>
+              <div class="absolute inset-0 grid place-items-center font-mono text-xs text-ink-faint">
+                CAD viewport (enable JavaScript for the live drawing)
+              </div>
+            </noscript>
+          </div>
+
+          <!-- command line -->
+          <div
+            class="flex items-center justify-between gap-3 border-t border-line bg-panel px-3.5 py-2.5 font-mono text-[0.8rem]"
+          >
+            <div class="flex items-center gap-2 truncate">
+              <span class="text-ink-faint">Command:</span>
+              <span data-command class="caret font-medium text-ink">LINE</span>
+            </div>
+            <div class="hidden shrink-0 text-ink-faint sm:block">
+              @dx,dy · @dist&lt;angle
+            </div>
+          </div>
+        </div>
+
+        <!-- decorative dimension line under the panel -->
+        <div
+          class="mt-3 hidden items-center gap-2 px-1 font-mono text-[0.68rem] text-ink-faint sm:flex"
+          aria-hidden="true"
+        >
+          <span>◄</span>
+          <span class="h-px flex-1 bg-line-strong"></span>
+          <span>NativeKernel2D · no third-party CAD dependency</span>
+          <span class="h-px flex-1 bg-line-strong"></span>
+          <span>►</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- scroll cue -->
+  <a
+    href="#features"
+    class="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 font-mono text-[0.68rem] tracking-widest text-ink-faint transition-colors hover:text-ink lg:flex"
+  >
+    SCROLL
+    <span class="flex h-9 w-5 items-start justify-center rounded-full border border-line-strong pt-1.5">
+      <span class="h-1.5 w-1 animate-bounce rounded-full bg-ink-faint"></span>
+    </span>
+  </a>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { initHeroCanvas } from '../scripts/hero-canvas';
+
+  const prefersReduced = window.matchMedia(
+    '(prefers-reduced-motion: reduce)',
+  ).matches;
+
+  // --- Reveal the hero copy ---
+  const revealEls = gsap.utils.toArray<HTMLElement>('[data-reveal]');
+  if (prefersReduced) {
+    gsap.set(revealEls, { opacity: 1, y: 0 });
+  } else {
+    gsap.set(revealEls, { opacity: 0, y: 18 });
+    gsap.to(revealEls, {
+      opacity: 1,
+      y: 0,
+      duration: 0.9,
+      ease: 'power3.out',
+      stagger: 0.09,
+      delay: 0.05,
+    });
+  }
+
+  // --- Boot the interactive CAD canvas (Three.js is code-split inside) ---
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
+  if (canvas) {
+    initHeroCanvas(canvas).catch((err) => {
+      console.warn('[hero] canvas unavailable:', err);
+    });
+  }
+
+  // --- Live coordinate HUD + snap label (maps pointer -> faux model space) ---
+  const viewport = document.querySelector<HTMLElement>('[data-viewport]');
+  const hudX = document.querySelector<HTMLElement>('[data-hud-x]');
+  const hudY = document.querySelector<HTMLElement>('[data-hud-y]');
+  const snapLabel = document.querySelector<HTMLElement>('[data-snap-label]');
+  const snaps = ['endpoint', 'midpoint', 'center', 'intersection', 'nearest'];
+
+  viewport?.addEventListener('pointermove', (e) => {
+    const rect = viewport.getBoundingClientRect();
+    const u = (e.clientX - rect.left) / rect.width;
+    const v = (e.clientY - rect.top) / rect.height;
+    // Model space: 2400 x 1600 drawing units, Y up.
+    if (hudX) hudX.textContent = (u * 2400).toFixed(2);
+    if (hudY) hudY.textContent = ((1 - v) * 1600).toFixed(2);
+    if (snapLabel) {
+      const i = Math.floor((u * 7 + v * 5)) % snaps.length;
+      snapLabel.textContent = snaps[i];
+    }
+  });
+
+  // --- Command-line cycler (feels like an operator at the keyboard) ---
+  const cmdEl = document.querySelector<HTMLElement>('[data-command]');
+  if (cmdEl && !prefersReduced) {
+    const commands = ['LINE', 'CIRCLE', 'PLINE', 'ARC', 'RECTANGLE', 'ZOOM'];
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % commands.length;
+      cmdEl.textContent = commands[i];
+    }, 2600);
+  }
+</script>

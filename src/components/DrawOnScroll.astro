@@ -1,0 +1,457 @@
+---
+// SIGNATURE SECTION — "draw on scroll".
+// A dimensioned mechanical part constructs itself stroke-by-stroke, scrubbed to
+// scroll, while the section is pinned (desktop only). Every drawn element is an
+// inline SVG <path>/<line>/<circle> animated via stroke-dashoffset along a GSAP
+// timeline tied to a pinned ScrollTrigger. As the drawing assembles, mono
+// callout chips fade/slide in, synced to timeline progress. A faint blueprint
+// grid sits behind the SVG; a small title block snaps into the corner at the end.
+//
+// REDUCED MOTION / MOBILE (<=767px): no pin — the full final drawing + every
+// callout render statically (a cheap, non-scrubbed in-view draw runs on mobile).
+import SectionHeading from './SectionHeading.astro';
+
+// Overlay callouts, surfaced in sequence as the timeline progresses. Each `at`
+// is the normalised timeline position (0–1) where the chip should appear.
+const callouts = [
+  { label: 'Snapping', detail: '□ endpoint  △ midpoint  ○ center', at: 0.18 },
+  { label: 'Ortho tracking', detail: 'F8 · constrained to axis', at: 0.4 },
+  { label: 'Instanced rendering', detail: '1M primitives · ~4–6 draw calls', at: 0.62 },
+  { label: 'Lock-free snapshot', detail: 'triple-buffered · 144 Hz+', at: 0.84 },
+];
+---
+
+<section id="showcase" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
+  <SectionHeading
+    eyebrow="DRAWN TO SCALE"
+    titleHtml='It assembles like you<br class="hidden sm:block" /> <span class="text-accent">drew it yourself.</span>'
+  >
+    <p class="mt-4 text-lg text-ink-soft">
+      Scroll and watch a dimensioned part take shape — outlines, holes, then
+      dimension lines and a title block — the same precise strokes Musa CAD
+      renders live at 144&#8202;Hz.
+    </p>
+  </SectionHeading>
+
+  <!-- ===================== PINNED STAGE ===================== -->
+  <!-- data-stage is what ScrollTrigger pins. On desktop it fills the viewport
+       and centers the drawing; on mobile it just flows in the document. -->
+  <div
+    data-stage
+    class="relative mt-12 flex items-center justify-center lg:mt-16 lg:min-h-[80vh]"
+  >
+    <!-- crop-framed drawing sheet -->
+    <div
+      class="crop-frame relative w-full max-w-4xl overflow-hidden rounded-2xl border border-line-strong bg-paper-2 shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]"
+    >
+      <!-- sheet header bar -->
+      <div
+        class="flex items-center justify-between gap-3 border-b border-line bg-panel px-3.5 py-2.5"
+      >
+        <div class="flex items-center gap-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+          <span class="ml-2 font-mono text-[0.72rem] text-ink-faint"
+            >bracket.musa</span
+          >
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="cad-chip hidden sm:inline-flex">SCALE 1:1</span>
+          <span class="cad-chip" data-on>DRAW</span>
+        </div>
+      </div>
+
+      <!-- ============ DRAWING AREA ============ -->
+      <div class="relative aspect-[16/11]">
+        <!-- faint blueprint grid behind the SVG (local to the sheet) -->
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-0"
+          style="
+            background-image:
+              linear-gradient(to right, color-mix(in srgb, var(--color-grid) 55%, transparent) 1px, transparent 1px),
+              linear-gradient(to bottom, color-mix(in srgb, var(--color-grid) 55%, transparent) 1px, transparent 1px);
+            background-size: 28px 28px;
+            -webkit-mask-image: radial-gradient(120% 100% at 50% 50%, #000 60%, transparent 100%);
+            mask-image: radial-gradient(120% 100% at 50% 50%, #000 60%, transparent 100%);
+            opacity: 0.5;
+          "
+        >
+        </div>
+
+        <!-- The construction drawing. viewBox is a 480×330 model space; all
+             elements use vector-effect:non-scaling-stroke so hairlines stay
+             crisp at any size. Each [data-draw] path is animated by JS. -->
+        <svg
+          data-drawing
+          viewBox="0 0 480 330"
+          class="relative block h-full w-full"
+          fill="none"
+          role="img"
+          aria-label="A dimensioned mechanical bracket: an outer outline with two bolt holes, a central bore, dimension lines, and a title block."
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="vector-effect: non-scaling-stroke;"
+        >
+          <!-- ---- construction crosshair guides (drawn first, accent-2, faint) ---- -->
+          <g stroke="var(--color-accent-2)" stroke-width="0.75" opacity="0.5">
+            <line data-draw data-phase="guide" x1="240" y1="40" x2="240" y2="290" stroke-dasharray="4 4" />
+            <line data-draw data-phase="guide" x1="70" y1="165" x2="410" y2="165" stroke-dasharray="4 4" />
+          </g>
+
+          <!-- ---- main bracket outline (ink, primary body) ---- -->
+          <path
+            data-draw
+            data-phase="outline"
+            d="M110 90
+               L370 90
+               Q386 90 386 106
+               L386 224
+               Q386 240 370 240
+               L150 240
+               Q134 240 134 224
+               L134 150
+               L110 150
+               Q94 150 94 134
+               L94 106
+               Q94 90 110 90 Z"
+            stroke="var(--color-ink)"
+            stroke-width="2"
+          />
+
+          <!-- ---- inner relief pocket (ink-soft) ---- -->
+          <rect
+            data-draw
+            data-phase="detail"
+            x="172" y="128" width="176" height="84" rx="10"
+            stroke="var(--color-ink-soft)"
+            stroke-width="1.25"
+          />
+
+          <!-- ---- central bore (accent — the hot feature) ---- -->
+          <circle
+            data-draw data-phase="detail"
+            cx="240" cy="170" r="34"
+            stroke="var(--color-accent)" stroke-width="2"
+          />
+          <circle
+            data-draw data-phase="detail"
+            cx="240" cy="170" r="20"
+            stroke="var(--color-accent)" stroke-width="1.25"
+          />
+
+          <!-- ---- two bolt holes ---- -->
+          <circle data-draw data-phase="detail" cx="148" cy="116" r="9" stroke="var(--color-ink)" stroke-width="1.5" />
+          <circle data-draw data-phase="detail" cx="360" cy="116" r="9" stroke="var(--color-ink)" stroke-width="1.5" />
+          <circle data-draw data-phase="detail" cx="360" cy="214" r="9" stroke="var(--color-ink)" stroke-width="1.5" />
+
+          <!-- ---- center snap markers (○ center) on the bore ---- -->
+          <g data-draw data-phase="detail" stroke="var(--color-accent-2)" stroke-width="1.25">
+            <line x1="228" y1="170" x2="252" y2="170" />
+            <line x1="240" y1="158" x2="240" y2="182" />
+          </g>
+
+          <!-- ================= DIMENSION LINES (accent-2) ================= -->
+          <!-- horizontal overall width dim, below the part -->
+          <g data-draw data-phase="dims" stroke="var(--color-accent-2)" stroke-width="1">
+            <!-- extension lines -->
+            <line x1="94" y1="240" x2="94" y2="276" />
+            <line x1="386" y1="240" x2="386" y2="276" />
+            <!-- dimension line -->
+            <line x1="94" y1="270" x2="386" y2="270" />
+            <!-- arrowheads -->
+            <path d="M94 270 l8 -3.5 v7 z" fill="var(--color-accent-2)" stroke="none" />
+            <path d="M386 270 l-8 -3.5 v7 z" fill="var(--color-accent-2)" stroke="none" />
+          </g>
+
+          <!-- vertical overall height dim, right of the part -->
+          <g data-draw data-phase="dims" stroke="var(--color-accent-2)" stroke-width="1">
+            <line x1="386" y1="90" x2="424" y2="90" />
+            <line x1="386" y1="240" x2="424" y2="240" />
+            <line x1="418" y1="90" x2="418" y2="240" />
+            <path d="M418 90 l-3.5 8 h7 z" fill="var(--color-accent-2)" stroke="none" />
+            <path d="M418 240 l-3.5 -8 h7 z" fill="var(--color-accent-2)" stroke="none" />
+          </g>
+
+          <!-- radial callout on the bore (accent) -->
+          <g data-draw data-phase="dims" stroke="var(--color-accent)" stroke-width="1">
+            <line x1="240" y1="170" x2="274" y2="136" />
+            <path d="M274 136 l-9 1.5 l4 4 z" fill="var(--color-accent)" stroke="none" />
+          </g>
+
+          <!-- ---- dimension value text (mono, drawn with the dims phase) ---- -->
+          <g
+            data-dim-text
+            font-family="var(--font-mono)"
+            font-size="11"
+            fill="var(--color-ink-soft)"
+            opacity="0"
+          >
+            <text x="240" y="266" text-anchor="middle">292.00</text>
+            <text x="430" y="168" text-anchor="start" fill="var(--color-ink-soft)">150.00</text>
+            <text x="282" y="130" text-anchor="start" fill="var(--color-accent)">R34</text>
+          </g>
+
+          <!-- ================= TITLE BLOCK (snaps in last) ================= -->
+          <g data-title-block opacity="0">
+            <rect x="300" y="276" width="170" height="46" rx="3"
+                  stroke="var(--color-ink)" stroke-width="1.25" fill="var(--color-paper-2)" />
+            <line x1="300" y1="293" x2="470" y2="293" stroke="var(--color-line-strong)" stroke-width="0.75" />
+            <line x1="388" y1="293" x2="388" y2="322" stroke="var(--color-line-strong)" stroke-width="0.75" />
+            <text x="308" y="289" font-family="var(--font-display)" font-size="11" font-weight="600" fill="var(--color-ink)">MUSA CAD</text>
+            <text x="308" y="307" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-ink-soft)">SCALE 1:1</text>
+            <text x="308" y="318" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-ink-soft)">bracket.musa</text>
+            <text x="396" y="307" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-accent)">.musa</text>
+            <text x="396" y="318" font-family="var(--font-mono)" font-size="8.5" fill="var(--color-ink-faint)">SHEET 1/1</text>
+          </g>
+        </svg>
+
+        <!-- ============ OVERLAY CALLOUT CHIPS ============ -->
+        <!-- Positioned around the drawing; revealed in sequence by the timeline. -->
+        <div class="pointer-events-none absolute inset-0">
+          {
+            callouts.map((c, i) => {
+              // Distribute the four chips into the four corners of the sheet.
+              const pos = [
+                'left-3 top-3 sm:left-5 sm:top-5',
+                'right-3 top-3 sm:right-5 sm:top-5 text-right',
+                'left-3 bottom-3 sm:left-5 sm:bottom-5',
+                'right-3 bottom-3 sm:right-5 sm:bottom-5 text-right',
+              ][i];
+              return (
+                <div
+                  data-callout
+                  data-at={c.at}
+                  class:list={['absolute max-w-[58%] sm:max-w-none', pos]}
+                >
+                  <span class="cad-chip" data-on>
+                    <span
+                      class="inline-block h-1.5 w-1.5 rotate-45 bg-accent"
+                      aria-hidden="true"
+                    />
+                    {c.label}
+                  </span>
+                  <p class="mt-1.5 font-mono text-[0.66rem] leading-snug text-ink-faint">
+                    {c.detail}
+                  </p>
+                </div>
+              );
+            })
+          }
+        </div>
+      </div>
+
+      <!-- sheet footer: command-line flavour -->
+      <div
+        class="flex items-center justify-between gap-3 border-t border-line bg-panel px-3.5 py-2.5 font-mono text-[0.8rem]"
+      >
+        <div class="flex items-center gap-2 truncate">
+          <span class="text-ink-faint">Command:</span>
+          <span data-cmd class="caret font-medium text-ink">LINE</span>
+        </div>
+        <div class="hidden shrink-0 text-ink-faint sm:block">
+          <span data-progress>0</span>% drawn
+        </div>
+      </div>
+    </div>
+
+    <!-- decorative coordinate note, desktop only -->
+    <div
+      class="pointer-events-none absolute -bottom-7 left-1 hidden font-mono text-[0.68rem] text-ink-faint lg:block"
+      aria-hidden="true"
+    >
+      @0,0 ─ origin · NativeKernel2D
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = window.matchMedia('(max-width: 767px)').matches;
+
+  const stage = document.querySelector<HTMLElement>('[data-stage]');
+  const svg = document.querySelector<SVGSVGElement>('[data-drawing]');
+  if (stage && svg) {
+    const strokes = gsap.utils.toArray<SVGGeometryElement>('[data-draw]');
+    const callouts = gsap.utils.toArray<HTMLElement>('[data-callout]');
+    const dimText = svg.querySelector<SVGGElement>('[data-dim-text]');
+    const titleBlock = svg.querySelector<SVGGElement>('[data-title-block]');
+    const cmdEl = document.querySelector<HTMLElement>('[data-cmd]');
+    const progressEl = document.querySelector<HTMLElement>('[data-progress]');
+
+    // Group strokes by their build phase so the drawing assembles in order:
+    // guide → outline → detail (holes/snaps) → dims (dimension lines).
+    const phaseOrder = ['guide', 'outline', 'detail', 'dims'];
+    const phaseCommands: Record<string, string> = {
+      guide: 'XLINE',
+      outline: 'PLINE',
+      detail: 'CIRCLE',
+      dims: 'DIMLINEAR',
+    };
+
+    // Prep every stroke: dasharray = its own length, dashoffset = length (hidden).
+    strokes.forEach((el) => {
+      const len = (el.getTotalLength && el.getTotalLength()) || 0;
+      // Some <g> wrappers report length 0 — fall back to a sane constant so
+      // the dash animation still has something to reveal.
+      const total = len > 0 ? len : 80;
+      gsap.set(el, {
+        strokeDasharray: total,
+        strokeDashoffset: total,
+        opacity: 1,
+      });
+      el.dataset.len = String(total);
+    });
+
+    // --- helper: render the COMPLETE drawing (used by reduced-motion + as the
+    //     pinned timeline's end state). ---
+    const drawComplete = () => {
+      strokes.forEach((el) => gsap.set(el, { strokeDashoffset: 0 }));
+      if (dimText) gsap.set(dimText, { opacity: 1 });
+      if (titleBlock) gsap.set(titleBlock, { opacity: 1, scale: 1 });
+      callouts.forEach((c) => gsap.set(c, { opacity: 1, x: 0, y: 0 }));
+      if (progressEl) progressEl.textContent = '100';
+      if (cmdEl) cmdEl.textContent = 'SAVE';
+    };
+
+    // Title block starts shrunk + offset so it can "snap" into place.
+    if (titleBlock) {
+      gsap.set(titleBlock, {
+        transformOrigin: '50% 50%',
+        scale: 0.85,
+        opacity: 0,
+        y: 10,
+      });
+    }
+    // Callouts start slid-in slightly + transparent.
+    callouts.forEach((c) =>
+      gsap.set(c, {
+        opacity: 0,
+        x: c.classList.contains('text-right') ? 16 : -16,
+        y: 8,
+      }),
+    );
+
+    // ====================== STATIC FALLBACK ======================
+    // Reduced motion → show the finished drawing immediately, no triggers.
+    if (reduced) {
+      drawComplete();
+    } else if (isMobile) {
+      // ============ MOBILE: cheap, non-pinned in-view draw ============
+      // A single un-scrubbed timeline that plays once when the stage enters.
+      const tl = gsap.timeline({ paused: true });
+      phaseOrder.forEach((phase) => {
+        const group = strokes.filter((el) => el.dataset.phase === phase);
+        tl.to(
+          group,
+          { strokeDashoffset: 0, duration: 0.7, ease: 'none', stagger: 0.06 },
+          '>-0.1',
+        );
+      });
+      if (dimText) tl.to(dimText, { opacity: 1, duration: 0.4 }, '>-0.2');
+      if (titleBlock)
+        tl.to(
+          titleBlock,
+          { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'back.out(1.7)' },
+          '>-0.1',
+        );
+      callouts.forEach((c) =>
+        tl.to(c, { opacity: 1, x: 0, y: 0, duration: 0.4 }, '<0.1'),
+      );
+
+      ScrollTrigger.create({
+        trigger: stage,
+        start: 'top 75%',
+        once: true,
+        onEnter: () => tl.play(),
+      });
+    } else {
+      // ============ DESKTOP: scrubbed, PINNED construction ============
+      const tl = gsap.timeline({
+        defaults: { ease: 'none' },
+        scrollTrigger: {
+          trigger: stage,
+          start: 'top top',
+          end: '+=180%',
+          scrub: true,
+          pin: true,
+          anticipatePin: 1,
+          // Drive the live command label + % readout from scroll progress.
+          onUpdate: (self) => {
+            if (progressEl)
+              progressEl.textContent = String(Math.round(self.progress * 100));
+          },
+        },
+      });
+
+      // Build each phase in sequence, slightly overlapping for flow.
+      phaseOrder.forEach((phase) => {
+        const group = strokes.filter((el) => el.dataset.phase === phase);
+        if (!group.length) return;
+        // Swap the command-line label as each phase begins.
+        tl.call(
+          () => {
+            if (cmdEl) cmdEl.textContent = phaseCommands[phase] ?? 'LINE';
+          },
+          [],
+          '>-0.05',
+        );
+        tl.to(
+          group,
+          { strokeDashoffset: 0, duration: 1, stagger: 0.12 },
+          '>-0.1',
+        );
+      });
+
+      // Dimension value text fades in with the dims phase tail.
+      if (dimText) tl.to(dimText, { opacity: 1, duration: 0.4 }, '>-0.3');
+
+      // Title block SNAPS into place at the very end (slight back ease).
+      if (titleBlock)
+        tl.to(
+          titleBlock,
+          {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            duration: 0.6,
+            ease: 'back.out(2)',
+          },
+          '>-0.1',
+        );
+      tl.call(() => {
+        if (cmdEl) cmdEl.textContent = 'SAVE';
+      });
+
+      // Callouts: each tied to its own `at` progress point so they surface in
+      // sequence regardless of timeline duration math.
+      callouts.forEach((c) => {
+        const at = parseFloat(c.dataset.at || '0');
+        ScrollTrigger.create({
+          trigger: stage,
+          start: 'top top',
+          end: '+=180%',
+          scrub: true,
+          onUpdate: (self) => {
+            const on = self.progress >= at;
+            gsap.to(c, {
+              opacity: on ? 1 : 0,
+              x: on ? 0 : c.classList.contains('text-right') ? 16 : -16,
+              y: on ? 0 : 8,
+              duration: 0.35,
+              overwrite: true,
+            });
+          },
+        });
+      });
+
+      // Make sure layout is measured after fonts/images settle.
+      ScrollTrigger.refresh();
+    }
+  }
+</script>

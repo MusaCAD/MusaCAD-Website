@@ -1,0 +1,721 @@
+---
+// INTERACTIVE COMMAND-LINE SHOWCASE — id="command-line".
+// LEFT: a faux AutoCAD-style terminal with a scrolling command history and a
+//       live "Command:" prompt with a blinking caret. Preset command buttons
+//       (L, C, REC, PL, A, ZOOM) drive both the terminal output AND the canvas.
+// RIGHT: a mini Canvas2D CAD viewport, framed like the hero's viewport (chrome
+//       bar + crop-frame), that animates the corresponding shape drawing itself.
+//
+// All copy stays accurate to the VERBATIM FACTS. Command aliases mirror the
+// README table (L=LINE, C=CIRCLE, PL=PLINE, A=ARC, REC=RECTANGLE, ZOOM, U=UNDO).
+// Coordinate notation @dx,dy and @dist<angle is shown prominently.
+import SectionHeading from './SectionHeading.astro';
+
+// Preset commands surfaced as clickable buttons. `alias` is the mono short form
+// shown on the chip; `cmd` is the JS hook the script keys off.
+const presets = [
+  { alias: 'L', cmd: 'line', name: 'LINE' },
+  { alias: 'C', cmd: 'circle', name: 'CIRCLE' },
+  { alias: 'REC', cmd: 'rect', name: 'RECTANGLE' },
+  { alias: 'PL', cmd: 'pline', name: 'PLINE' },
+  { alias: 'A', cmd: 'arc', name: 'ARC' },
+  { alias: 'ZOOM', cmd: 'zoom', name: 'ZOOM' },
+];
+---
+
+<section id="command-line" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
+  <SectionHeading
+    eyebrow="COMMAND LINE"
+    titleHtml='Type a verb, draw a <span class="text-accent">drawing.</span>'
+  >
+    <p class="mt-4 text-lg text-ink-soft">
+      An AutoCAD-style command line with table-driven aliases and absolute /
+      relative <span class="font-mono text-ink">@dx,dy</span> / polar
+      <span class="font-mono text-ink">@dist&lt;angle</span> input. Pick a verb
+      below and watch it resolve into geometry.
+    </p>
+  </SectionHeading>
+
+  <div
+    data-cli
+    class="mt-12 grid gap-6 lg:mt-14 lg:grid-cols-[0.92fr_1.08fr] lg:gap-8"
+  >
+    <!-- =============================== LEFT: terminal =============================== -->
+    <div class="flex flex-col gap-4">
+      <!-- preset command buttons -->
+      <div
+        class="flex flex-wrap gap-2"
+        role="group"
+        aria-label="Preset CAD commands"
+      >
+        {
+          presets.map((p) => (
+            <button
+              type="button"
+              data-cmd={p.cmd}
+              class="cad-chip transition-colors hover:border-line-strong hover:text-ink data-[active]:border-accent data-[active]:text-accent"
+              aria-label={`Run command ${p.name} (alias ${p.alias})`}
+            >
+              <span class="font-semibold">{p.alias}</span>
+              <span class="text-ink-faint">{p.name}</span>
+            </button>
+          ))
+        }
+      </div>
+
+      <!-- the terminal itself: dark-on-paper recessed panel -->
+      <div
+        class="crop-frame flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line-strong bg-panel shadow-[0_30px_80px_-50px_rgba(20,24,30,0.4)]"
+      >
+        <!-- terminal chrome -->
+        <div
+          class="flex items-center justify-between gap-3 border-b border-line bg-paper-2 px-3.5 py-2.5"
+        >
+          <div class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="ml-2 font-mono text-[0.72rem] text-ink-faint"
+              >command line</span
+            >
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="cad-chip" data-on>F8 ORTHO</span>
+            <span class="cad-chip hidden sm:inline-flex">F3 OSNAP</span>
+          </div>
+        </div>
+
+        <!-- scrolling command history -->
+        <div
+          data-term
+          class="flex-1 overflow-y-auto px-4 py-3.5 font-mono text-[0.82rem] leading-relaxed text-ink-soft"
+          aria-live="polite"
+          aria-label="Command history"
+          style="min-height: 16rem; max-height: 22rem;"
+          tabindex="0"
+        >
+          <!-- Seed history (also the static reduced-motion / no-JS state). -->
+          <p><span class="text-ink-faint">Command:</span> <span class="text-ink">LINE</span></p>
+          <p class="text-ink-faint">Specify first point:</p>
+          <p>Specify next point or [Undo]: <span class="text-accent">@120,0</span></p>
+          <p>Specify next point: <span class="text-accent">@0,80</span></p>
+          <p class="text-accent-2">// pick a verb above to draw</p>
+        </div>
+
+        <!-- live prompt line with blinking caret -->
+        <div
+          class="flex items-center justify-between gap-3 border-t border-line bg-paper-2 px-3.5 py-2.5 font-mono text-[0.82rem]"
+        >
+          <div class="flex min-w-0 items-center gap-2 truncate">
+            <span class="text-ink-faint">Command:</span>
+            <span data-prompt class="caret font-medium text-ink"></span>
+          </div>
+          <div class="hidden shrink-0 text-ink-faint sm:block">
+            @dx,dy &middot; @dist&lt;angle
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================== RIGHT: mini viewport =============================== -->
+    <div class="relative">
+      <!-- decorative origin note -->
+      <div
+        class="absolute -top-7 left-1 hidden font-mono text-[0.68rem] text-ink-faint sm:block"
+        aria-hidden="true"
+      >
+        @0,0 &mdash; origin
+      </div>
+
+      <div
+        class="crop-frame overflow-hidden rounded-2xl border border-line-strong bg-paper-2 shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]"
+      >
+        <!-- chrome bar -->
+        <div
+          class="flex items-center justify-between gap-3 border-b border-line bg-panel px-3.5 py-2.5"
+        >
+          <div class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+            <span class="ml-2 font-mono text-[0.72rem] text-ink-faint"
+              >sketch.musa</span
+            >
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="cad-chip" data-on>&square; END</span>
+            <span class="cad-chip hidden sm:inline-flex">&#9651; MID</span>
+            <span class="cad-chip hidden sm:inline-flex">&cir; CEN</span>
+          </div>
+        </div>
+
+        <!-- canvas -->
+        <div class="relative aspect-[5/4] sm:aspect-[16/11]">
+          <canvas
+            data-canvas
+            class="cad-cursor block h-full w-full"
+            aria-label="Mini CAD viewport that draws the selected command"
+          ></canvas>
+
+          <!-- live command HUD (echoes the active verb) -->
+          <div
+            class="pointer-events-none absolute right-3 top-3 rounded-md border border-line/70 bg-paper-2/80 px-2.5 py-1.5 font-mono text-[0.7rem] text-ink-soft backdrop-blur-sm"
+          >
+            <span class="text-ink-faint">CMD</span>
+            <span data-hud-cmd class="text-ink">LINE</span>
+          </div>
+
+          <!-- snap label -->
+          <div
+            class="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1.5 font-mono text-[0.7rem] text-accent-2"
+          >
+            <span class="inline-block h-1.5 w-1.5 rotate-45 border border-accent-2"></span>
+            <span data-snap>endpoint</span>
+          </div>
+
+          <noscript>
+            <div class="absolute inset-0 grid place-items-center font-mono text-xs text-ink-faint">
+              CAD viewport (enable JavaScript for the live drawing)
+            </div>
+          </noscript>
+        </div>
+
+        <!-- coordinate-notation footer -->
+        <div
+          class="flex items-center justify-between gap-3 border-t border-line bg-panel px-3.5 py-2.5 font-mono text-[0.78rem]"
+        >
+          <div class="flex items-center gap-2 truncate text-ink-faint">
+            relative <span class="text-accent">@dx,dy</span>
+          </div>
+          <div class="truncate text-ink-faint">
+            polar <span class="text-accent">@dist&lt;angle</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- decorative dimension line under the panel -->
+      <div
+        class="mt-3 hidden items-center gap-2 px-1 font-mono text-[0.68rem] text-ink-faint sm:flex"
+        aria-hidden="true"
+      >
+        <span>&#9668;</span>
+        <span class="h-px flex-1 bg-line-strong"></span>
+        <span>table-driven aliases &middot; ENTER-repeat &middot; ESC-cancel</span>
+        <span class="h-px flex-1 bg-line-strong"></span>
+        <span>&#9658;</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const root = document.querySelector<HTMLElement>('[data-cli]');
+  const canvas = root?.querySelector<HTMLCanvasElement>('[data-canvas]');
+  const term = root?.querySelector<HTMLElement>('[data-term]');
+  const prompt = root?.querySelector<HTMLElement>('[data-prompt]');
+  const hudCmd = root?.querySelector<HTMLElement>('[data-hud-cmd]');
+  const snapEl = root?.querySelector<HTMLElement>('[data-snap]');
+  const buttons = root
+    ? Array.from(root.querySelectorAll<HTMLButtonElement>('[data-cmd]'))
+    : [];
+
+  // Bail out gracefully if the markup is missing or 2D context unavailable.
+  const ctx = canvas?.getContext('2d') ?? null;
+
+  if (root && canvas && ctx && term && prompt) {
+    // ------------------------------------------------------------------ palette
+    // Pull theme tokens from CSS so the canvas matches the page exactly.
+    const css = getComputedStyle(document.documentElement);
+    const tok = (name: string, fallback: string) =>
+      css.getPropertyValue(name).trim() || fallback;
+    const COL = {
+      grid: tok('--color-grid', '#cfd8e3'),
+      line: tok('--color-line', '#e8e4da'),
+      ink: tok('--color-ink', '#14181e'),
+      accent: tok('--color-accent', '#f73f28'),
+      accent2: tok('--color-accent-2', '#0fa968'),
+      faint: tok('--color-ink-faint', '#8a909c'),
+    };
+
+    // ------------------------------------------------------------------ sizing
+    // HiDPI-aware backing store. We render in CSS-pixel space after scaling.
+    let W = 0;
+    let H = 0;
+    let dpr = 1;
+    const resize = () => {
+      const rect = canvas.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = rect.width;
+      H = rect.height;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      render(); // redraw current state at the new size
+    };
+
+    // ------------------------------------------------------------------ state
+    // `progress` (0..1) drives the draw-in of the active shape. `zoomPulse`
+    // (0..1) drives the zoom-extents flash. `shape` selects what to render.
+    const state = {
+      shape: 'line' as
+        | 'line'
+        | 'circle'
+        | 'rect'
+        | 'pline'
+        | 'arc'
+        | 'zoom',
+      progress: 1,
+      zoomPulse: 0,
+    };
+
+    // Map normalized coords (0..1, Y-down) into the padded canvas box.
+    const PAD = 0.14;
+    const px = (nx: number) => W * (PAD + nx * (1 - 2 * PAD));
+    const py = (ny: number) => H * (PAD + ny * (1 - 2 * PAD));
+
+    // ------------------------------------------------------------- grid + frame
+    function drawGrid() {
+      ctx.save();
+      ctx.strokeStyle = COL.grid;
+      ctx.globalAlpha = 0.5;
+      ctx.lineWidth = 1;
+      const step = Math.max(28, Math.min(W, H) / 12);
+      for (let x = (W % step) / 2; x < W; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(Math.round(x) + 0.5, 0);
+        ctx.lineTo(Math.round(x) + 0.5, H);
+        ctx.stroke();
+      }
+      for (let y = (H % step) / 2; y < H; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, Math.round(y) + 0.5);
+        ctx.lineTo(W, Math.round(y) + 0.5);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // A small endpoint snap marker (square) at a point.
+    function snapMark(x: number, y: number, color: string) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x - 4, y - 4, 8, 8);
+      ctx.restore();
+    }
+
+    // Crosshair cursor at the current "pen" position.
+    function crosshair(x: number, y: number) {
+      ctx.save();
+      ctx.strokeStyle = COL.faint;
+      ctx.globalAlpha = 0.7;
+      ctx.lineWidth = 1;
+      const r = 9;
+      ctx.beginPath();
+      ctx.moveTo(x - r, y);
+      ctx.lineTo(x + r, y);
+      ctx.moveTo(x, y - r);
+      ctx.lineTo(x, y + r);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // A dimension label drawn in mono near a point (decorative coord notation).
+    function dimLabel(x: number, y: number, text: string) {
+      ctx.save();
+      ctx.fillStyle = COL.accent;
+      ctx.font =
+        '11px ui-monospace, "JetBrains Mono", "SFMono-Regular", monospace';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, y);
+      ctx.restore();
+    }
+
+    // --------------------------------------------------------------- renderers
+    // Each renderer draws the shape up to `p` (0..1) of completion.
+
+    function renderLine(p: number) {
+      const ax = px(0.18),
+        ay = py(0.7);
+      const bx = px(0.82),
+        by = py(0.3);
+      ctx.save();
+      ctx.strokeStyle = COL.accent;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(ax + (bx - ax) * p, ay + (by - ay) * p);
+      ctx.stroke();
+      ctx.restore();
+      snapMark(ax, ay, COL.accent2);
+      if (p >= 1) {
+        snapMark(bx, by, COL.accent2);
+        dimLabel(bx + 10, by - 4, '@120,0');
+      } else {
+        crosshair(ax + (bx - ax) * p, ay + (by - ay) * p);
+      }
+    }
+
+    function renderCircle(p: number) {
+      const cx = px(0.5),
+        cy = py(0.5);
+      const r = Math.min(W, H) * 0.26;
+      ctx.save();
+      ctx.strokeStyle = COL.accent;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p);
+      ctx.stroke();
+      // radius dimension line
+      ctx.strokeStyle = COL.accent2;
+      ctx.globalAlpha = 0.8;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + r, cy);
+      ctx.stroke();
+      ctx.restore();
+      snapMark(cx, cy, COL.accent2); // center snap
+      if (p >= 1) dimLabel(cx + r * 0.3, cy - 8, 'R 60');
+    }
+
+    function renderRect(p: number) {
+      const x0 = px(0.2),
+        y0 = py(0.28);
+      const x1 = px(0.8),
+        y1 = py(0.72);
+      // Perimeter draw-in: walk the 4 edges proportionally to p.
+      const pts = [
+        [x0, y0],
+        [x1, y0],
+        [x1, y1],
+        [x0, y1],
+        [x0, y0],
+      ];
+      ctx.save();
+      ctx.strokeStyle = COL.accent;
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      const segs = 4;
+      const total = p * segs;
+      for (let i = 1; i <= segs; i++) {
+        const t = Math.max(0, Math.min(1, total - (i - 1)));
+        const [ax, ay] = pts[i - 1];
+        const [bx, by] = pts[i];
+        ctx.lineTo(ax + (bx - ax) * t, ay + (by - ay) * t);
+        if (t < 1) break;
+      }
+      ctx.stroke();
+      ctx.restore();
+      snapMark(x0, y0, COL.accent2);
+      if (p >= 1) {
+        snapMark(x1, y1, COL.accent2);
+        dimLabel(x1 + 8, y1 + 2, '@180,-120');
+      }
+    }
+
+    function renderPline(p: number) {
+      // A 4-segment polyline drawn segment by segment.
+      const pts = [
+        [px(0.12), py(0.68)],
+        [px(0.36), py(0.34)],
+        [px(0.58), py(0.6)],
+        [px(0.8), py(0.26)],
+        [px(0.9), py(0.62)],
+      ];
+      ctx.save();
+      ctx.strokeStyle = COL.accent;
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      const segs = pts.length - 1;
+      const total = p * segs;
+      let penX = pts[0][0],
+        penY = pts[0][1];
+      for (let i = 1; i <= segs; i++) {
+        const t = Math.max(0, Math.min(1, total - (i - 1)));
+        const [ax, ay] = pts[i - 1];
+        const [bx, by] = pts[i];
+        penX = ax + (bx - ax) * t;
+        penY = ay + (by - ay) * t;
+        ctx.lineTo(penX, penY);
+        if (t < 1) break;
+      }
+      ctx.stroke();
+      ctx.restore();
+      pts.forEach(([x, y], i) => {
+        if (i / segs <= p + 0.001) snapMark(x, y, COL.accent2);
+      });
+      if (p < 1) crosshair(penX, penY);
+      else dimLabel(pts[3][0] + 8, pts[3][1] - 6, '@60<120');
+    }
+
+    function renderArc(p: number) {
+      const cx = px(0.5),
+        cy = py(0.74);
+      const r = Math.min(W, H) * 0.32;
+      const a0 = Math.PI; // start at left
+      const a1 = 0; // sweep to right (over the top)
+      ctx.save();
+      ctx.strokeStyle = COL.accent;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, a0, a0 + (a1 - a0) * p, false);
+      ctx.stroke();
+      ctx.restore();
+      snapMark(cx + r * Math.cos(a0), cy + r * Math.sin(a0), COL.accent2);
+      if (p >= 1) {
+        snapMark(cx + r * Math.cos(a1), cy + r * Math.sin(a1), COL.accent2);
+        snapMark(cx, cy - r, COL.accent2); // top midpoint
+        dimLabel(cx - 16, cy - r - 12, '@180<90');
+      }
+    }
+
+    // ZOOM shows a settled scene (line + circle) plus an extents pulse box.
+    function renderZoom(pulse: number) {
+      // settled geometry
+      ctx.save();
+      ctx.strokeStyle = COL.ink;
+      ctx.globalAlpha = 0.85;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(px(0.2), py(0.7));
+      ctx.lineTo(px(0.78), py(0.34));
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(px(0.62), py(0.62), Math.min(W, H) * 0.16, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      // extents pulse: a dashed accent rectangle that expands + fades.
+      const ease = 1 - Math.pow(1 - pulse, 2);
+      const grow = 1 + ease * 0.12;
+      const cx = W / 2,
+        cy = H / 2;
+      const bw = W * (1 - 2 * PAD) * grow;
+      const bh = H * (1 - 2 * PAD) * grow;
+      ctx.save();
+      ctx.strokeStyle = COL.accent;
+      ctx.globalAlpha = 0.3 + (1 - pulse) * 0.7;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([6, 5]);
+      ctx.strokeRect(cx - bw / 2, cy - bh / 2, bw, bh);
+      ctx.restore();
+      // corner crosshairs
+      [
+        [cx - bw / 2, cy - bh / 2],
+        [cx + bw / 2, cy - bh / 2],
+        [cx - bw / 2, cy + bh / 2],
+        [cx + bw / 2, cy + bh / 2],
+      ].forEach(([x, y]) => crosshair(x, y));
+      if (pulse >= 1) dimLabel(cx - 26, cy, 'EXTENTS');
+    }
+
+    // Master render: clear, grid, then the active shape.
+    function render() {
+      ctx.clearRect(0, 0, W, H);
+      drawGrid();
+      switch (state.shape) {
+        case 'line':
+          renderLine(state.progress);
+          break;
+        case 'circle':
+          renderCircle(state.progress);
+          break;
+        case 'rect':
+          renderRect(state.progress);
+          break;
+        case 'pline':
+          renderPline(state.progress);
+          break;
+        case 'arc':
+          renderArc(state.progress);
+          break;
+        case 'zoom':
+          renderZoom(state.zoomPulse);
+          break;
+      }
+    }
+
+    // ------------------------------------------------------------ terminal text
+    // Realistic AutoCAD-style prompt scripts per command.
+    const SNAP_FOR: Record<string, string> = {
+      line: 'endpoint',
+      circle: 'center',
+      rect: 'endpoint',
+      pline: 'endpoint',
+      arc: 'midpoint',
+      zoom: 'nearest',
+    };
+
+    const SCRIPTS: Record<string, { html: string }[]> = {
+      line: [
+        { html: '<span class="text-ink-faint">Command:</span> <span class="text-ink">LINE</span>' },
+        { html: '<span class="text-ink-faint">Specify first point:</span>' },
+        { html: 'Specify next point or [Undo]: <span class="text-accent">@120,0</span>' },
+        { html: 'Specify next point: <span class="text-accent">@0,80</span>' },
+      ],
+      circle: [
+        { html: '<span class="text-ink-faint">Command:</span> <span class="text-ink">CIRCLE</span>' },
+        { html: 'Specify center point for circle:' },
+        { html: 'Specify radius or [Diameter]: <span class="text-accent">60</span>' },
+      ],
+      rect: [
+        { html: '<span class="text-ink-faint">Command:</span> <span class="text-ink">RECTANGLE</span>' },
+        { html: 'Specify first corner point:' },
+        { html: 'Specify other corner point: <span class="text-accent">@180,-120</span>' },
+      ],
+      pline: [
+        { html: '<span class="text-ink-faint">Command:</span> <span class="text-ink">PLINE</span>' },
+        { html: 'Specify start point:' },
+        { html: 'Next point or [Arc/Close/Undo]: <span class="text-accent">@80,90</span>' },
+        { html: 'Next point: <span class="text-accent">@70,-70</span>' },
+        { html: 'Next point: <span class="text-accent">@60<120</span>' },
+      ],
+      arc: [
+        { html: '<span class="text-ink-faint">Command:</span> <span class="text-ink">ARC</span>' },
+        { html: 'Specify start point of arc:' },
+        { html: 'Specify second point or [Center/End]: <span class="text-accent">@180<90</span>' },
+        { html: 'Specify end point of arc:' },
+      ],
+      zoom: [
+        { html: '<span class="text-ink-faint">Command:</span> <span class="text-ink">ZOOM</span>' },
+        { html: '[All/Center/Extents/Window] &lt;real time&gt;: <span class="text-accent">E</span>' },
+        { html: '<span class="text-accent-2">// regenerating &mdash; zoom to extents</span>' },
+      ],
+    };
+
+    const NAME: Record<string, string> = {
+      line: 'LINE',
+      circle: 'CIRCLE',
+      rect: 'RECTANGLE',
+      pline: 'PLINE',
+      arc: 'ARC',
+      zoom: 'ZOOM',
+    };
+
+    // Append a line to the history and keep it scrolled to the bottom.
+    function pushLine(html: string) {
+      const p = document.createElement('p');
+      p.innerHTML = html;
+      term!.appendChild(p);
+      // Cap history length so the DOM stays light.
+      while (term!.children.length > 40) term!.removeChild(term!.firstChild!);
+      term!.scrollTop = term!.scrollHeight;
+    }
+
+    // Type each script line out with a small delay (or instantly if reduced).
+    let lineTimers: number[] = [];
+    function emitScript(cmd: string) {
+      lineTimers.forEach(clearTimeout);
+      lineTimers = [];
+      const lines = SCRIPTS[cmd] ?? [];
+      if (reduced) {
+        lines.forEach((l) => pushLine(l.html));
+        return;
+      }
+      lines.forEach((l, i) => {
+        const t = window.setTimeout(() => pushLine(l.html), i * 220);
+        lineTimers.push(t);
+      });
+    }
+
+    // --------------------------------------------------------------- animation
+    let tween: gsap.core.Tween | null = null;
+    function animateShape(cmd: string) {
+      tween?.kill();
+      if (cmd === 'zoom') {
+        state.shape = 'zoom';
+        if (reduced) {
+          state.zoomPulse = 1;
+          render();
+          return;
+        }
+        state.zoomPulse = 0;
+        tween = gsap.to(state, {
+          zoomPulse: 1,
+          duration: 0.7,
+          ease: 'power2.out',
+          onUpdate: render,
+        });
+        return;
+      }
+      state.shape = cmd as typeof state.shape;
+      if (reduced) {
+        state.progress = 1;
+        render();
+        return;
+      }
+      state.progress = 0;
+      tween = gsap.to(state, {
+        progress: 1,
+        duration: 0.95,
+        ease: 'power2.inOut',
+        onUpdate: render,
+      });
+    }
+
+    // ----------------------------------------------------------------- run cmd
+    function runCommand(cmd: string) {
+      if (!SCRIPTS[cmd]) return;
+      // active button styling
+      buttons.forEach((b) =>
+        b.toggleAttribute('active', b.dataset.cmd === cmd),
+      );
+      if (prompt) prompt.textContent = NAME[cmd];
+      if (hudCmd) hudCmd.textContent = NAME[cmd];
+      if (snapEl) snapEl.textContent = SNAP_FOR[cmd] ?? 'endpoint';
+      emitScript(cmd);
+      animateShape(cmd);
+    }
+
+    buttons.forEach((b) => {
+      b.addEventListener('click', () => runCommand(b.dataset.cmd!));
+    });
+
+    // ------------------------------------------------------------------- boot
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Default shape on load: LINE (already seeded in the static history, so we
+    // don't re-emit the script — just set the active state + draw it).
+    if (prompt) prompt.textContent = 'LINE';
+    buttons.forEach((b) =>
+      b.toggleAttribute('active', b.dataset.cmd === 'line'),
+    );
+    state.shape = 'line';
+
+    if (reduced) {
+      // Final, complete state immediately. No ScrollTrigger, no animation.
+      state.progress = 1;
+      render();
+    } else {
+      // Draw the default line in once the section scrolls into view.
+      state.progress = 0;
+      render();
+      ScrollTrigger.create({
+        trigger: root,
+        start: 'top 80%',
+        once: true,
+        onEnter: () =>
+          gsap.to(state, {
+            progress: 1,
+            duration: 1.1,
+            ease: 'power2.out',
+            onUpdate: render,
+          }),
+      });
+    }
+  }
+</script>

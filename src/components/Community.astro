@@ -1,0 +1,190 @@
+---
+// COMMUNITY — warm closing CTA band. Open-source credentials (LGPL-3.0-or-later,
+// "clone-and-build clean"), an invitation to contribute, and three side-by-side
+// actions: Star on GitHub, Releases (v0.1.0), and a prominent Donate button.
+// Rendered on a deep brand-navy block with a faint blueprint grid detail so it
+// reads as the page's final, premium sign-off.
+import SectionHeading from './SectionHeading.astro';
+import { REPO_URL, RELEASES_URL, LATEST_RELEASE, LICENSE } from '../data/site';
+---
+
+<section id="community" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
+  <!-- ====================== closing CTA band (navy) ====================== -->
+  <div
+    data-community
+    class="crop-frame relative overflow-hidden rounded-3xl border border-line-strong bg-brand-navy px-6 py-16 text-paper sm:px-12 sm:py-20 lg:px-16"
+  >
+    <!-- faint blueprint grid detail (decorative) -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 opacity-[0.14]"
+      style="
+        background-image:
+          linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
+          linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
+        -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
+      "
+    >
+    </div>
+
+    <!-- decorative crosshair + dimension note (top-left corner) -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute left-5 top-5 hidden font-mono text-[0.68rem] tracking-wide text-grid/70 sm:block"
+    >
+      @0,0 ─ open source
+    </div>
+
+    <div class="relative mx-auto max-w-2xl text-center">
+      <!-- eyebrow (mono, matches SectionHeading rhythm but tuned for dark bg) -->
+      <div data-c-reveal class="flex items-center justify-center gap-2.5">
+        <span class="h-1.5 w-1.5 rotate-45 bg-accent" aria-hidden="true"></span>
+        <p class="font-mono text-xs uppercase tracking-[0.22em] text-grid">
+          OPEN SOURCE
+        </p>
+      </div>
+
+      <!-- heading -->
+      <h2
+        data-c-reveal
+        class="mt-4 font-display text-4xl font-semibold sm:text-5xl"
+      >
+        Built in the open,
+        <span class="text-accent">clone-and-build clean.</span>
+      </h2>
+
+      <!-- intro copy -->
+      <p data-c-reveal class="mx-auto mt-5 max-w-xl text-lg text-grid">
+        Musa CAD is free software under the
+        <span class="text-paper">{LICENSE}</span> license — no third-party CAD
+        dependency, no hidden steps. Clone the repo, build it, and the whole
+        engine is yours to read, run and improve.
+      </p>
+
+      <!-- contributor invitation -->
+      <p data-c-reveal class="mx-auto mt-3 max-w-lg font-mono text-sm text-grid/80">
+        Issues, pull requests and benchmarks welcome — thanks to everyone
+        shaping the engine.
+      </p>
+
+      <!-- ============================ actions ============================ -->
+      <div
+        data-c-reveal
+        class="mt-10 flex flex-wrap items-center justify-center gap-3"
+      >
+        <!-- Star on GitHub -->
+        <a
+          href={REPO_URL}
+          target="_blank"
+          rel="noopener"
+          class="btn border border-grid/40 bg-paper/10 px-5 py-3 text-[0.97rem] text-paper hover:border-grid hover:bg-paper/20"
+        >
+          <!-- GitHub mark -->
+          <svg
+            viewBox="0 0 16 16"
+            class="h-[18px] w-[18px]"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+            ></path>
+          </svg>
+          Star on GitHub
+          <!-- star glyph -->
+          <svg
+            viewBox="0 0 24 24"
+            class="h-[16px] w-[16px] text-accent"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.11-6.46-4.7-4.58 6.49-.94L12 2.5Z"
+            ></path>
+          </svg>
+        </a>
+
+        <!-- Releases -->
+        <a
+          href={RELEASES_URL}
+          target="_blank"
+          rel="noopener"
+          class="btn border border-grid/40 bg-paper/10 px-5 py-3 text-[0.97rem] text-paper hover:border-grid hover:bg-paper/20"
+        >
+          <!-- tag / release glyph -->
+          <svg
+            viewBox="0 0 24 24"
+            class="h-[18px] w-[18px]"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9-9-9Z"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+            <circle cx="7.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"
+            ></circle>
+          </svg>
+          Releases
+          <span class="font-mono text-xs text-grid">{LATEST_RELEASE}</span>
+        </a>
+
+        <!-- Donate (prominent accent CTA — global [data-donate] toast handles click) -->
+        <button type="button" data-donate class="btn btn-accent px-5 py-3 text-[0.97rem]">
+          <!-- heart glyph -->
+          <svg
+            viewBox="0 0 24 24"
+            class="h-[18px] w-[18px]"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 21s-7.5-4.6-10-9.3C.6 8.8 2 5.5 5.2 5.1 7 4.9 8.6 5.9 9.5 7.3 9.8 7.7 10 8 12 8c2 0-1.8-.3-1.5-.7C11.4 5.9 13 4.9 14.8 5.1 18 5.5 19.4 8.8 22 11.7 19.5 16.4 12 21 12 21Z"
+            ></path>
+          </svg>
+          Donate
+        </button>
+      </div>
+
+      <!-- license / platform footnote -->
+      <p
+        data-c-reveal
+        class="mt-7 font-mono text-[0.72rem] tracking-wide text-grid/70"
+      >
+        GNU LGPL-3.0-or-later · Linux + Windows · DXF read/write built in
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  gsap.registerPlugin(ScrollTrigger);
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const els = gsap.utils.toArray<HTMLElement>('[data-c-reveal]');
+
+  if (reduced) {
+    // Reduced motion: render the final state immediately, no ScrollTrigger.
+    gsap.set(els, { opacity: 1, y: 0 });
+  } else {
+    // Gentle staggered reveal as the band scrolls into view.
+    gsap.set(els, { opacity: 0, y: 18 });
+    gsap.to(els, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: 'power3.out',
+      stagger: 0.08,
+      scrollTrigger: {
+        trigger: '[data-community]',
+        start: 'top 80%',
+        once: true,
+      },
+    });
+  }
+</script>
