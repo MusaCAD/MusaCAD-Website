@@ -4,8 +4,12 @@
 // actions: Star on GitHub, Releases (v0.1.0), and a prominent Donate button.
 // Rendered on a deep brand-navy block with a faint blueprint grid detail so it
 // reads as the page's final, premium sign-off.
-import SectionHeading from './SectionHeading.astro';
-import { REPO_URL, RELEASES_URL, LATEST_RELEASE, LICENSE } from '../data/site';
+import { getSnapshot } from '../data/github';
+import { REPO_URL, RELEASES_URL, LICENSE, formatStars } from '../data/site';
+
+// Build-time values; `scripts/github-live.ts` refreshes both in the browser
+// through the [data-gh-stars] / [data-gh-tag] hooks.
+const { stars, release } = await getSnapshot();
 ---
 
 <section id="community" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
@@ -104,6 +108,10 @@ import { REPO_URL, RELEASES_URL, LATEST_RELEASE, LICENSE } from '../data/site';
               d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.11-6.46-4.7-4.58 6.49-.94L12 2.5Z"
             ></path>
           </svg>
+          <!-- Live count; stays empty until we actually have one. -->
+          <span data-gh-stars class="font-mono text-xs text-grid">
+            {stars && stars > 0 ? formatStars(stars) : ''}
+          </span>
         </a>
 
         <!-- Releases -->
@@ -129,7 +137,7 @@ import { REPO_URL, RELEASES_URL, LATEST_RELEASE, LICENSE } from '../data/site';
             ></circle>
           </svg>
           Releases
-          <span class="font-mono text-xs text-grid">{LATEST_RELEASE}</span>
+          <span data-gh-tag class="font-mono text-xs text-grid">{release.tag}</span>
         </a>
 
         <!-- Donate (prominent accent CTA → the donation page) -->

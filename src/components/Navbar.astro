@@ -1,13 +1,13 @@
 ---
 // Sticky navbar — turns to glass on scroll. Logo + wordmark, anchored nav,
-// GitHub (with build-time star count), Releases, and the accent Donate CTA.
-import {
-  REPO_URL,
-  RELEASES_URL,
-  LATEST_RELEASE,
-  fetchStars,
-  formatStars,
-} from '../data/site';
+// GitHub (with star count), Releases, and the accent Donate CTA.
+//
+// The star count and release tag are rendered from a build-time GitHub
+// snapshot and then refreshed in the browser by `scripts/github-live.ts` via
+// the [data-gh-stars] / [data-gh-tag] hooks, so they don't go stale between
+// deploys.
+import { getSnapshot } from '../data/github';
+import { REPO_URL, RELEASES_URL, formatStars } from '../data/site';
 
 const base = import.meta.env.BASE_URL;
 
@@ -25,7 +25,7 @@ const links = [
 ];
 
 // Fetched at build time; falls back gracefully to a "Star" label.
-const stars = await fetchStars();
+const { stars, release } = await getSnapshot();
 const starLabel = stars && stars > 0 ? formatStars(stars) : 'Star';
 ---
 
@@ -83,7 +83,7 @@ const starLabel = stars && stars > 0 ? formatStars(stars) : 'Star';
         <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 text-ink-faint" fill="currentColor" aria-hidden="true">
           <path d="m12 17.27 5.18 3.13-1.37-5.9 4.59-3.98-6.06-.52L12 4.5 9.66 9.99 3.6 10.51l4.59 3.98-1.37 5.9z"></path>
         </svg>
-        <span class="font-mono text-xs">{starLabel}</span>
+        <span data-gh-stars class="font-mono text-xs">{starLabel}</span>
       </a>
 
       <a
@@ -93,7 +93,7 @@ const starLabel = stars && stars > 0 ? formatStars(stars) : 'Star';
         class="hidden items-center gap-1.5 rounded-lg border border-line-strong bg-paper-2 px-3 py-2 text-sm text-ink transition-colors hover:border-ink/30 lg:inline-flex"
       >
         Releases
-        <span class="font-mono text-[0.7rem] text-ink-faint">{LATEST_RELEASE}</span>
+        <span data-gh-tag class="font-mono text-[0.7rem] text-ink-faint">{release.tag}</span>
       </a>
 
       <a
@@ -144,7 +144,7 @@ const starLabel = stars && stars > 0 ? formatStars(stars) : 'Star';
       </li>
       <li>
         <a href={RELEASES_URL} target="_blank" rel="noopener" class="block rounded-lg px-3 py-2.5 text-sm text-ink-soft hover:bg-panel">
-          Releases · {LATEST_RELEASE}
+          Releases · <span data-gh-tag>{release.tag}</span>
         </a>
       </li>
       <li>

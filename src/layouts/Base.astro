@@ -68,6 +68,14 @@ const ogImage = new URL(`${base}musacad_mark.png`, Astro.site).href;
 
     <script>
       import { initSmoothScroll, scrollTo } from '../scripts/smooth-scroll';
+      import { initGitHubLive } from '../scripts/github-live';
+
+      // Refresh the star count, the release tag and the download button against
+      // the live GitHub API — the site is static, so these would otherwise be
+      // frozen at whatever was true when it was last deployed.
+      initGitHubLive().catch(() => {
+        /* server-rendered values stay on screen */
+      });
 
       const lenis = initSmoothScroll();
 

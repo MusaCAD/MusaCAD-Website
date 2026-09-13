@@ -6,6 +6,18 @@ on:
     branches: [main]
   # ...and allow manual runs from the Actions tab.
   workflow_dispatch:
+  # Nightly rebuild so the *server-rendered* star count and release tag stay
+  # current. Visitors get live values either way (see scripts/github-live.ts);
+  # this keeps the no-JS HTML, crawlers and social previews honest too.
+  # NOTE: GitHub disables scheduled workflows after 60 days without repository
+  # activity — re-enable from the Actions tab if the site ever goes quiet.
+  schedule:
+    - cron: '17 5 * * *'
+  # Let MusaCAD/MusaCAD trigger a rebuild the moment it publishes a release:
+  #   gh api repos/MusaCAD/MusaCAD-Website/dispatches \
+  #     -f event_type=release-published
+  repository_dispatch:
+    types: [release-published]
 
 # Permissions the GITHUB_TOKEN needs to publish to Pages.
 permissions:
@@ -36,6 +48,10 @@ jobs:
 
       - name: Build (Astro reads base/site from astro.config.mjs)
         run: npm run build
+        env:
+          # Lifts the GitHub API rate limit from 60/hour/IP (runner IPs are
+          # shared, so unauthenticated builds do get throttled) to 1000/hour.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

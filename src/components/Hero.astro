@@ -2,7 +2,8 @@
 // HERO — the showpiece. Copy on the left (drawn verbatim from the README),
 // an interactive CAD viewport on the right (Three.js canvas that draws itself,
 // live coordinate HUD, snap chips, and an AutoCAD-style command line).
-import { RELEASES_URL, REPO_URL, LATEST_RELEASE } from '../data/site';
+import DownloadCTA from './DownloadCTA.astro';
+import { REPO_URL } from '../data/site';
 ---
 
 <section
@@ -47,20 +48,8 @@ import { RELEASES_URL, REPO_URL, LATEST_RELEASE } from '../data/site';
           <span class="text-ink">clone-and-build clean.</span>
         </p>
 
-        <!-- CTAs -->
-        <div data-reveal class="mt-9 flex flex-wrap items-center gap-3">
-          <a
-            href={RELEASES_URL}
-            target="_blank"
-            rel="noopener"
-            class="btn btn-accent px-5 py-3 text-[0.97rem]"
-          >
-            <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M5 21h14" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-            Download
-            <span class="font-mono text-xs opacity-80">{LATEST_RELEASE}</span>
-          </a>
+        <!-- CTAs — the download button retargets itself to the visitor's OS -->
+        <DownloadCTA class="mt-9" data-reveal>
           <a
             href={REPO_URL}
             target="_blank"
@@ -72,7 +61,7 @@ import { RELEASES_URL, REPO_URL, LATEST_RELEASE } from '../data/site';
             </svg>
             View on GitHub
           </a>
-        </div>
+        </DownloadCTA>
 
         <!-- meta stat strip -->
         <dl

@@ -20,8 +20,10 @@ Live target domain: **musacad.org**
 | Hero canvas    | [Three.js](https://threejs.org) (code-split, lazy-loaded)           |
 | Fonts          | Self-hosted variable fonts (Space Grotesk / Inter / JetBrains Mono) via Fontsource |
 
-Everything is **static** — no backend, no runtime services. The donate button is
-an intentional dummy (shows a "Donations coming soon ✦" toast).
+Everything is **static** — no backend, no runtime services. The only runtime
+network call is a direct, unauthenticated read of the public GitHub API to keep
+the star count, release tag and download links current (see
+[Live GitHub data](#live-github-data--os-aware-downloads)).
 
 ---
 
@@ -65,12 +67,16 @@ public/
 src/
   layouts/Base.astro      # document shell: fonts, meta, blueprint bg, smooth scroll
   components/
-    Navbar.astro          # sticky glass nav + build-time GitHub star fetch
+    Navbar.astro          # sticky glass nav + live GitHub star count
     Hero.astro            # headline, CTAs, interactive CAD viewport, command line
+    DownloadCTA.astro     # OS-aware download button + "other downloads" line
   scripts/
     smooth-scroll.ts      # Lenis <-> GSAP ScrollTrigger integration
     hero-canvas.ts        # Three.js CAD drawing (draws on load, snap markers, parallax)
-  data/site.ts            # canonical links + build-time star fetch helper
+    github-live.ts        # runtime refresh of stars / release tag / download links
+  data/
+    site.ts               # canonical links + release model + OS & asset rules (pure)
+    github.ts             # build-time GitHub fetch (server only)
   styles/global.css       # design tokens (@theme) + base + component layer
   pages/index.astro       # the page
 astro.config.mjs          # site URL + Tailwind v4 Vite plugin
@@ -83,6 +89,51 @@ All color/type/motion tokens live in the `@theme` block of
 #f73f28`) is **sampled from the official MusaCAD logo artwork**; navy and mint are
 the logo's secondary hues. The Three.js hero canvas reads these via CSS custom
 properties, so re-theming the site re-themes the live drawing too.
+
+---
+
+## Live GitHub data & OS-aware downloads
+
+A static site normally freezes whatever it knew at build time. Three values must
+not do that — the **star count**, the **latest release tag**, and the **download
+URLs** — so they are resolved twice:
+
+| When | What happens | Source |
+| ---- | ------------ | ------ |
+| Build time | `data/github.ts` fetches the repo + `releases/latest` once per build and renders real values into the HTML. Unreachable API ⇒ falls back to `FALLBACK_RELEASE` and a plain "Star" label; the build never fails. | server |
+| Page view | `scripts/github-live.ts` re-reads both endpoints and updates every `[data-gh-stars]`, `[data-gh-tag]` and `[data-download]` in place. | browser |
+
+So a visitor always sees the current release even if the site hasn't been
+rebuilt since it shipped. Runtime results are cached in `sessionStorage` for 15
+minutes, which keeps a visitor far below GitHub's unauthenticated limit (60
+requests/hour/IP). If the API is unreachable, rate-limited or blocked, the
+server-rendered values simply stay on screen — failure is silent and never
+destructive.
+
+### The download button
+
+`DownloadCTA.astro` renders a platform-neutral **Download** button pointing at
+the releases page, with every artifact listed in the small line beneath it.
+That's what no-JS visitors and crawlers get, and it is always correct.
+
+In the browser, `detectOS()` then retargets it at the matching artifact:
+
+| Visitor | Button | Direct link |
+| ------- | ------ | ----------- |
+| Windows | `Download for Windows` | `.exe` installer |
+| Linux | `Download for Linux` | `.AppImage` |
+| macOS | `Download` | releases page + "No macOS build yet — build from source" |
+| Phone / unknown | `Download` | releases page |
+
+Everything else drops into the small "other downloads" line, so no artifact is
+ever hidden — just de-emphasized.
+
+**Adding a new package format** (a `.deb`, an `.rpm`, an `.msix`) needs exactly
+one line in `ASSET_RULES` in [`src/data/site.ts`](src/data/site.ts); the button,
+the OS picker and the small line all follow. `rank` breaks ties within an OS
+(lowest wins), and checksums/signatures are filtered out automatically. Because
+`data/site.ts` is pure and imported by both the build and the browser, the two
+renderings cannot drift.
 
 ---
 
@@ -103,7 +154,18 @@ The output in `dist/` is plain static files — host it anywhere.
 ### GitHub Pages (configured)
 
 This repo ships a workflow at [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
-that builds with Node 20 and deploys `dist/` to GitHub Pages on every push to `main`.
+that builds with Node 20 and deploys `dist/` to GitHub Pages. It runs on every push to
+`main`, on a **nightly schedule** (so the server-rendered star count and release tag stay
+fresh for crawlers and no-JS visitors), and on a `release-published` **repository
+dispatch** — let `MusaCAD/MusaCAD` rebuild this site the moment it publishes a release:
+
+```sh
+gh api repos/MusaCAD/MusaCAD-Website/dispatches -f event_type=release-published
+```
+
+> Note: GitHub disables scheduled workflows after 60 days without repository activity.
+> Visitors still get live values from the browser either way — re-enable the schedule
+> from the Actions tab if the site goes quiet for that long.
 
 **One-time setup:** repo **Settings → Pages → Build and deployment → Source: GitHub
 Actions**. After that, each push to `main` publishes automatically. Until a custom domain

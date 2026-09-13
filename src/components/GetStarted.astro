@@ -5,7 +5,8 @@
 // Windows), a "Read BUILD.md" ghost link, and the primary download CTA.
 // Copy is accurate to the VERBATIM FACTS; only a gentle reveal animation is used.
 import SectionHeading from './SectionHeading.astro';
-import { BUILD_URL, RELEASES_URL, LATEST_RELEASE, LICENSE } from '../data/site';
+import DownloadCTA from './DownloadCTA.astro';
+import { BUILD_URL, LICENSE } from '../data/site';
 
 // The three build commands, kept as data so the copy button and the rendered
 // lines stay in sync. Joined with newlines when copied to the clipboard.
@@ -166,21 +167,9 @@ const PREREQS = [
         </div>
       </div>
 
-      <!-- primary actions -->
+      <!-- primary actions — the download button retargets itself to the visitor's OS -->
       <div class="flex flex-col gap-3">
-        <div class="flex flex-wrap items-center gap-3">
-          <a
-            href={RELEASES_URL}
-            target="_blank"
-            rel="noopener"
-            class="btn btn-accent px-5 py-3 text-[0.97rem]"
-          >
-            <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M5 21h14" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-            Download
-            <span class="font-mono text-xs opacity-80">{LATEST_RELEASE}</span>
-          </a>
+        <DownloadCTA>
           <a
             href={BUILD_URL}
             target="_blank"
@@ -193,7 +182,7 @@ const PREREQS = [
             </svg>
             Read BUILD.md
           </a>
-        </div>
+        </DownloadCTA>
 
         <!-- license note -->
         <p class="px-1 font-mono text-[0.72rem] text-ink-faint">

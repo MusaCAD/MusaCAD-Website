@@ -1,0 +1,160 @@
+---
+/**
+ * DOWNLOAD CTA — the primary download button plus a small "other downloads"
+ * line, both driven by the *live* latest GitHub release.
+ *
+ * Rendering happens twice, on purpose:
+ *
+ *  1. At build time (here) we emit a platform-neutral button pointing at the
+ *     releases page, the full asset list in the small line, and the release
+ *     JSON in an inline `application/json` block. That is what no-JS visitors
+ *     and crawlers get, and it is always correct — just not personalized.
+ *  2. In the browser, `scripts/github-live.ts` reads that JSON, detects the
+ *     visitor's OS and rewrites the button to the matching artifact (Windows →
+ *     `.exe`, Linux → AppImage), demoting the rest to the small line. It then
+ *     re-fetches the release from the API so a visit after a new release shows
+ *     the new version without the site being rebuilt.
+ *
+ * Both passes share the classification rules in `data/site.ts`, so the two
+ * renderings can't drift.
+ *
+ * DOM contract used by the client script:
+ *   [data-download]       root (carries the embedded release JSON)
+ *   [data-dl-primary]     the anchor itself
+ *   [data-dl-icon="<os>"] one icon per OS; all but the active one are hidden
+ *   [data-dl-label]       button text
+ *   [data-gh-tag]         version chip (also refreshed site-wide)
+ *   [data-dl-alt]         the small mono line, rebuilt wholesale
+ */
+import { getSnapshot } from '../data/github';
+import { RELEASES_URL, assetLabel, assetTitle } from '../data/site';
+
+interface Props {
+  /** Classes for the primary button (callers own its size). */
+  buttonClass?: string;
+  /** Classes for the root wrapper. */
+  class?: string;
+  /** Anything else (e.g. `data-reveal`) lands on the root wrapper. */
+  [key: string]: unknown;
+}
+
+const {
+  buttonClass = 'px-5 py-3 text-[0.97rem]',
+  class: rootClass = '',
+  ...rest
+} = Astro.props;
+
+const { release } = await getSnapshot();
+
+// `</script>` can't appear in a GitHub asset name, but escaping `<` keeps the
+// inline JSON block valid no matter what lands in a future release.
+const releaseJson = JSON.stringify(release).replace(/</g, '\\u003c');
+---
+
+<div data-download class={`flex flex-col gap-3 ${rootClass}`} {...rest}>
+  <div class="flex flex-wrap items-center gap-3">
+    <a
+      data-dl-primary
+      href={RELEASES_URL}
+      target="_blank"
+      rel="noopener"
+      class={`btn btn-accent ${buttonClass}`}
+    >
+      <!-- One icon per platform; the client script unhides the matching one. -->
+      <span
+        class="relative inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center"
+        aria-hidden="true"
+      >
+        <svg
+          data-dl-icon="other"
+          viewBox="0 0 24 24"
+          class="h-[18px] w-[18px]"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M5 21h14"
+            stroke-linecap="round"
+            stroke-linejoin="round"></path>
+        </svg>
+        <svg
+          data-dl-icon="windows"
+          viewBox="0 0 24 24"
+          class="hidden h-[17px] w-[17px]"
+          fill="currentColor"
+        >
+          <path
+            d="M3 5.5 11 4.3v7.2H3V5.5Zm0 13L11 19.7v-7.1H3v5.9Zm9-14.4L21 3v8.5h-9V4.1Zm0 8.5h9V21l-9-1.1v-7.3Z"
+          ></path>
+        </svg>
+        <svg
+          data-dl-icon="linux"
+          viewBox="0 0 24 24"
+          class="hidden h-[19px] w-[19px]"
+          fill="currentColor"
+        >
+          <path
+            d="M12 2c-2.2 0-3.5 1.9-3.5 4.2 0 1.5.5 2.4.5 3.6 0 1-.8 1.8-1.6 3-1 1.4-2 2.8-2 4.7 0 .8.3 1.4.8 1.9-.2.5-.3 1-.1 1.4.4.7 1.4.8 2.4.8.7 0 1.3-.1 1.9-.1.6 0 1.2.1 1.9.1 1 0 2-.1 2.4-.8.2-.4.1-.9-.1-1.4.5-.5.8-1.1.8-1.9 0-1.9-1-3.3-2-4.7-.8-1.2-1.6-2-1.6-3 0-1.2.5-2.1.5-3.6C15.5 3.9 14.2 2 12 2Zm-1.3 4.1c.4 0 .7.4.7.9s-.3.9-.7.9-.7-.4-.7-.9.3-.9.7-.9Zm2.6 0c.4 0 .7.4.7.9s-.3.9-.7.9-.7-.4-.7-.9.3-.9.7-.9Z"
+          ></path>
+        </svg>
+        <svg
+          data-dl-icon="macos"
+          viewBox="0 0 24 24"
+          class="hidden h-[18px] w-[18px]"
+          fill="currentColor"
+        >
+          <path
+            d="M16.3 12.6c0-2.2 1.8-3.3 1.9-3.4-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.3.8-.7 0-1.7-.8-2.8-.8-1.5 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.2 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7c1.2 0 1.9-1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.5-.1 0-2.3-.9-2.3-3.2ZM14.1 5.8c.6-.7 1-1.7.9-2.8-.9 0-2 .6-2.6 1.3-.6.7-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.2Z"
+          ></path>
+        </svg>
+      </span>
+
+      <span data-dl-label>Download</span>
+      <span data-gh-tag class="font-mono text-xs opacity-80">{release.tag}</span>
+    </a>
+
+    <!-- Companion action (e.g. "View on GitHub", "Read BUILD.md"). -->
+    <slot />
+  </div>
+
+  <!--
+    Small "other downloads" line. Built server-side with every asset; the client
+    script rebuilds it with the visitor's own platform first and the rest after.
+  -->
+  <p
+    data-dl-alt
+    class="flex flex-wrap items-center gap-x-2 gap-y-1 px-0.5 font-mono text-[0.72rem] text-ink-faint"
+  >
+    {
+      release.assets.map((asset) => (
+        <>
+          <a
+            href={asset.url}
+            title={assetTitle(asset)}
+            class="underline decoration-line-strong underline-offset-[3px] transition-colors hover:text-ink-soft hover:decoration-ink-faint"
+          >
+            {assetLabel(asset)}
+          </a>
+          <span aria-hidden="true">·</span>
+        </>
+      ))
+    }
+    <a
+      href={RELEASES_URL}
+      target="_blank"
+      rel="noopener"
+      class="underline decoration-line-strong underline-offset-[3px] transition-colors hover:text-ink-soft hover:decoration-ink-faint"
+    >
+      All releases ↗
+    </a>
+  </p>
+
+  <!-- Build-time release snapshot the client script starts from. -->
+  <script
+    type="application/json"
+    data-dl-release
+    is:inline
+    set:html={releaseJson}
+  />
+</div>
