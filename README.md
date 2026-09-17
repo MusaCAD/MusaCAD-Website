@@ -61,9 +61,11 @@ npm run check      # astro check (type-checks .astro + TS)
 
 ```
 public/
-  musacad_logo.svg        # official logo (verbatim from the MusaCAD repo)
-  musacad_mark.png        # optimized raster mark (navbar / OG)
-  favicon*.png            # favicons derived from the logo
+  musacad_logo.svg        # official logo, verbatim from the engine repo (source of truth)
+  musacad_mark.png        # 512px Open Graph card, opaque paper ground
+  apple-touch-icon.png    # 180px iOS home screen, opaque (iOS composites alpha to black)
+  icon-192.png            # transparent mark used inline in the navbar + footer
+  favicon*.png            # 32/48px favicons, transparent
 src/
   layouts/Base.astro      # document shell: fonts, meta, blueprint bg, smooth scroll
   components/
@@ -85,10 +87,17 @@ astro.config.mjs          # site URL + Tailwind v4 Vite plugin
 ### Design tokens
 
 All color/type/motion tokens live in the `@theme` block of
-[`src/styles/global.css`](src/styles/global.css). The accent (`--color-accent:
-#f73f28`) is **sampled from the official MusaCAD logo artwork**; navy and mint are
-the logo's secondary hues. The Three.js hero canvas reads these via CSS custom
-properties, so re-theming the site re-themes the live drawing too.
+[`src/styles/global.css`](src/styles/global.css). The brand hues are **sampled
+from the official logo**, `assets/branding/musacad_logo.svg` in the engine repo:
+the orange fillet face (`--color-accent: #f73c1c`) drives every CTA, the navy
+body (`--color-brand-navy: #0e2c4c`) backs the deep panels, and the teal end face
+(`--color-brand-green: #0bd1b5`) is the highlight accent. The Three.js hero canvas
+reads these via CSS custom properties, so re-theming the site re-themes the live
+drawing too.
+
+If the mark ever changes again, re-sample those three from the SVG and regenerate
+the rasters in [`public/`](public/) — every icon on the site derives from that one
+file.
 
 ---
 

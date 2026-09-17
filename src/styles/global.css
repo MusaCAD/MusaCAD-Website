@@ -2,9 +2,14 @@
 
 /* ============================================================================
    DESIGN TOKENS  — sampled from the official MusaCAD logo + a paper-sheet palette
-   Accent #F73F28 is the dominant brand hue pulled from the logo artwork; navy
-   #0C213A and mint #27E488 are the logo's secondary hues. Everything else is a
-   warm "drawing sheet" neutral ramp so the site reads like a clean blueprint.
+   The mark is an L-shaped bracket in shallow perspective. Its three fills are
+   the brand: the orange fillet face #F73C1C is the dominant hue and drives every
+   CTA, the navy body #0E2C4C backs the deep panels, and the teal end face
+   #0BD1B5 is the highlight accent. Everything else is a warm "drawing sheet"
+   neutral ramp so the site reads like a clean blueprint.
+
+   These track assets/branding/musacad_logo.svg in the engine repo — re-sample
+   from that file if the mark ever changes again.
    ========================================================================== */
 @theme {
   /* ---- surfaces & ink ---- */
@@ -18,12 +23,12 @@
   --color-line-strong: #d8d3c6; /* stronger dividers */
 
   /* ---- brand ---- */
-  --color-accent: #f73f28; /* primary — CTAs, active states, hot geometry */
-  --color-accent-press: #dc2c15; /* pressed / hover */
-  --color-accent-soft: #fde7e2; /* accent wash */
+  --color-accent: #f73c1c; /* logo fillet — CTAs, active states, hot geometry */
+  --color-accent-press: #d12f14; /* pressed / hover */
+  --color-accent-soft: #fde6e2; /* accent wash */
   --color-accent-2: #0fa968; /* secondary — dimensions, center snaps */
-  --color-brand-green: #27e488; /* logo mint — highlight moments */
-  --color-brand-navy: #0c213a; /* logo navy — deep panels / footer */
+  --color-brand-green: #0bd1b5; /* logo teal end face — highlight moments */
+  --color-brand-navy: #0e2c4c; /* logo navy body — deep panels / footer */
   --color-grid: #cfd8e3; /* blueprint grid lines */
 
   /* ---- type ---- */
