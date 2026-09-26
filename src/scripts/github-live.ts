@@ -20,19 +20,20 @@
  */
 import {
   BUILD_URL,
-  LATEST_RELEASE_API,
+  RELEASES_API,
   RELEASES_URL,
   REPO_API,
   assetLabel,
   assetMeta,
   assetTitle,
   detectOS,
+  isBehindLatest,
   formatStars,
   osName,
   pickAsset,
-  toRelease,
+  toCatalog,
+  type Catalog,
   type OS,
-  type Release,
 } from '../data/site';
 
 /**
@@ -42,11 +43,11 @@ import {
  */
 interface LiveSnapshot {
   stars: number | null;
-  release: Release | null;
+  catalog: Catalog | null;
 }
 
 /** Bump the suffix whenever the cached shape changes. */
-const CACHE_KEY = 'musacad:gh:v1';
+const CACHE_KEY = 'musacad:gh:v2';
 /** How long one visitor may reuse a cached answer. Keeps us far under the
  *  unauthenticated 60-requests/hour/IP limit while still feeling live. */
 const CACHE_TTL_MS = 15 * 60 * 1000;
@@ -113,19 +114,18 @@ function note(text: string): HTMLSpanElement {
 }
 
 /**
- * Read the release snapshot the server embedded next to a download CTA. It is
- * already in our own `Release` shape (not GitHub's), so this only needs to
- * parse and sanity-check it.
+ * Read the catalog the server embedded next to a download CTA. It is already in
+ * our own `Catalog` shape (not GitHub's), so this only parses and sanity-checks.
  */
-function embeddedRelease(root: HTMLElement): Release | null {
+function embeddedCatalog(root: HTMLElement): Catalog | null {
   const el = root.querySelector<HTMLScriptElement>('script[data-dl-release]');
   if (!el?.textContent) return null;
   try {
-    const release = JSON.parse(el.textContent) as Release;
-    if (typeof release?.tag !== 'string' || !Array.isArray(release.assets)) {
+    const catalog = JSON.parse(el.textContent) as Catalog;
+    if (typeof catalog?.latest !== 'string' || !Array.isArray(catalog.assets)) {
       return null;
     }
-    return release;
+    return catalog;
   } catch {
     return null;
   }
@@ -136,13 +136,14 @@ function embeddedRelease(root: HTMLElement): Release | null {
  * small line underneath. Called both for the embedded release and for the
  * freshly fetched one.
  */
-function renderDownload(root: HTMLElement, release: Release, os: OS): void {
+function renderDownload(root: HTMLElement, catalog: Catalog, os: OS): void {
   const primary = root.querySelector<HTMLAnchorElement>('[data-dl-primary]');
   const label = root.querySelector<HTMLElement>('[data-dl-label]');
+  const tag = root.querySelector<HTMLElement>('[data-dl-tag]');
   const alt = root.querySelector<HTMLElement>('[data-dl-alt]');
   if (!primary || !label || !alt) return;
 
-  const chosen = pickAsset(release, os);
+  const chosen = pickAsset(catalog, os);
 
   // --- primary button ---
   if (chosen) {
@@ -153,12 +154,16 @@ function renderDownload(root: HTMLElement, release: Release, os: OS): void {
     primary.title = assetTitle(chosen);
     label.textContent = `Download for ${osName(os)}`;
   } else {
-    primary.href = release.url || RELEASES_URL;
+    primary.href = catalog.latestUrl || RELEASES_URL;
     primary.target = '_blank';
     primary.removeAttribute('download');
     primary.removeAttribute('title');
     label.textContent = 'Download';
   }
+
+  // The chip names the release the button actually hands you, which is not
+  // always the newest one — hence its own hook rather than [data-gh-tag].
+  if (tag) tag.textContent = chosen ? chosen.tag : catalog.latest;
 
   // Swap in the platform glyph.
   const iconFor = chosen ? os : 'other';
@@ -173,18 +178,28 @@ function renderDownload(root: HTMLElement, release: Release, os: OS): void {
   if (chosen) {
     // Lead with what the big button will actually hand you.
     parts.push(note(assetMeta(chosen)));
+    // Say so plainly when this platform is a release behind, so nobody thinks
+    // the version chip is a mistake.
+    if (isBehindLatest(chosen, catalog)) {
+      parts.push(note(`${catalog.latest} has no ${osName(os)} build yet`));
+    }
   } else if (os === 'macos') {
     // Honest about the gap rather than silently offering a Linux build.
     parts.push(note('No macOS build yet —'));
     parts.push(link('build from source ↗', BUILD_URL));
   }
 
-  for (const asset of release.assets) {
+  for (const asset of catalog.assets) {
     if (asset === chosen) continue;
-    parts.push(link(assetLabel(asset), asset.url, assetTitle(asset)));
+    // Name the version only when it differs from the newest release, so the
+    // common case stays uncluttered.
+    const text = isBehindLatest(asset, catalog)
+      ? `${assetLabel(asset)} ${asset.tag}`
+      : assetLabel(asset);
+    parts.push(link(text, asset.url, assetTitle(asset)));
   }
 
-  parts.push(link('All releases ↗', release.url || RELEASES_URL));
+  parts.push(link('All releases ↗', catalog.latestUrl || RELEASES_URL));
 
   parts.forEach((node, i) => {
     if (i > 0) alt.append(separator());
@@ -202,7 +217,7 @@ function renderDownload(root: HTMLElement, release: Release, os: OS): void {
 
 /** Push whatever half (or halves) of a snapshot we actually have into the page. */
 function apply(snapshot: LiveSnapshot, os: OS): void {
-  const { stars, release } = snapshot;
+  const { stars, catalog } = snapshot;
 
   if (typeof stars === 'number') {
     const label = formatStars(stars);
@@ -212,14 +227,16 @@ function apply(snapshot: LiveSnapshot, os: OS): void {
     });
   }
 
-  if (!release) return;
+  if (!catalog) return;
 
+  // Site-wide "latest release" labels (navbar, community band) always name the
+  // newest release. The download chip is deliberately not one of these.
   document.querySelectorAll<HTMLElement>('[data-gh-tag]').forEach((el) => {
-    el.textContent = release.tag;
+    el.textContent = catalog.latest;
   });
 
   document.querySelectorAll<HTMLElement>('[data-download]').forEach((root) => {
-    renderDownload(root, release, os);
+    renderDownload(root, catalog, os);
   });
 }
 
@@ -237,18 +254,18 @@ async function getJson(url: string): Promise<unknown> {
 }
 
 async function fetchSnapshot(): Promise<LiveSnapshot | null> {
-  const [repo, release] = await Promise.all([
+  const [repo, releases] = await Promise.all([
     getJson(REPO_API).catch(() => null),
-    getJson(LATEST_RELEASE_API).catch(() => null),
+    getJson(RELEASES_API).catch(() => null),
   ]);
 
   const stars = (repo as { stargazers_count?: unknown } | null)?.stargazers_count;
-  const parsed = toRelease(release);
+  const parsed = toCatalog(releases);
 
   // Nothing usable came back — leave the server-rendered values alone.
   if (typeof stars !== 'number' && !parsed) return null;
 
-  return { stars: typeof stars === 'number' ? stars : null, release: parsed };
+  return { stars: typeof stars === 'number' ? stars : null, catalog: parsed };
 }
 
 /* ========================================================================== */
@@ -260,8 +277,8 @@ export async function initGitHubLive(): Promise<void> {
 
   // Pass 1 — instant, offline: personalize what the server already gave us.
   document.querySelectorAll<HTMLElement>('[data-download]').forEach((root) => {
-    const release = embeddedRelease(root);
-    if (release) renderDownload(root, release, os);
+    const catalog = embeddedCatalog(root);
+    if (catalog) renderDownload(root, catalog, os);
   });
 
   // Pass 2 — live: cached answer if we have a fresh one, otherwise the API.

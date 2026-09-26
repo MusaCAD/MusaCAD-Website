@@ -7,10 +7,10 @@
  * deploys instead of freezing at whatever was true when it was built.
  */
 import {
-  FALLBACK_RELEASE_INFO,
-  LATEST_RELEASE_API,
+  FALLBACK_CATALOG,
+  RELEASES_API,
   REPO_API,
-  toRelease,
+  toCatalog,
   type Snapshot,
 } from './site';
 
@@ -55,7 +55,7 @@ function soften(what: string) {
 let pending: Promise<Snapshot> | null = null;
 
 /**
- * Stars + the latest release, fetched once per `astro build` and shared by
+ * Stars + the download catalog, fetched once per `astro build` and shared by
  * every component that asks (navbar, hero, download section, community band).
  */
 export function getSnapshot(): Promise<Snapshot> {
@@ -64,15 +64,15 @@ export function getSnapshot(): Promise<Snapshot> {
 }
 
 async function load(): Promise<Snapshot> {
-  const [repo, release] = await Promise.all([
+  const [repo, releases] = await Promise.all([
     getJson(REPO_API).catch(soften('repository')),
-    getJson(LATEST_RELEASE_API).catch(soften('latest release')),
+    getJson(RELEASES_API).catch(soften('releases')),
   ]);
 
   const stars = (repo as { stargazers_count?: unknown } | null)?.stargazers_count;
 
   return {
     stars: typeof stars === 'number' ? stars : null,
-    release: toRelease(release) ?? FALLBACK_RELEASE_INFO,
+    catalog: toCatalog(releases) ?? FALLBACK_CATALOG,
   };
 }

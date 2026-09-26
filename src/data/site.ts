@@ -13,7 +13,21 @@ export const REPO_NAME = 'MusaCAD';
 export const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
 export const RELEASES_URL = `${REPO_URL}/releases`;
 export const REPO_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
-export const LATEST_RELEASE_API = `${REPO_API}/releases/latest`;
+
+/**
+ * How many releases back to look when hunting for a platform's newest build.
+ * Deep enough to survive a few platform-skipping releases, shallow enough to
+ * stay one small API response.
+ */
+export const RELEASE_LOOKBACK = 10;
+/**
+ * The release *list*, newest first. We deliberately don't use
+ * `/releases/latest`: a release can ship builds for only some platforms (a
+ * Windows build held back while it's still being tested, say), and a visitor
+ * on the missing platform should still be offered the newest build that does
+ * exist for them rather than being dumped on the releases page.
+ */
+export const RELEASES_API = `${REPO_API}/releases?per_page=${RELEASE_LOOKBACK}`;
 export const ARCHITECTURE_URL = `${REPO_URL}/blob/main/docs/ARCHITECTURE.md`;
 export const BUILD_URL = `${REPO_URL}/blob/main/docs/BUILD.md`;
 
@@ -26,7 +40,7 @@ export const PLATFORMS = ['Linux', 'Windows'];
  * real tag comes from the API. Keep it roughly current, but it is not the
  * source of truth.
  */
-export const FALLBACK_RELEASE = 'v0.4.0';
+export const FALLBACK_RELEASE = 'v0.5.0';
 
 /* ========================================================================== */
 /* Release model                                                              */
@@ -46,24 +60,38 @@ export interface ReleaseAsset {
   kind: string;
   /** Preference within an OS — lower wins when picking the default download. */
   rank: number;
+  /** Tag of the release this asset came from — not necessarily the latest one. */
+  tag: string;
+  /** That release's page on GitHub. */
+  releaseUrl: string;
 }
 
-export interface Release {
-  tag: string;
-  /** Release page on GitHub (falls back to the releases index). */
-  url: string;
+/**
+ * What the site actually needs to know about downloads: the newest release,
+ * plus the best build available for each platform — which may come from an
+ * older release when the newest one skipped that platform.
+ */
+export interface Catalog {
+  /** Tag of the newest published release, whatever it happens to ship. */
+  latest: string;
+  /** That release's page on GitHub. */
+  latestUrl: string;
+  /**
+   * One coherent set per platform: for each OS, every asset from the newest
+   * release that has any build for it. Sorted by OS, then preference.
+   */
   assets: ReleaseAsset[];
 }
 
 export interface Snapshot {
   stars: number | null;
-  release: Release;
+  catalog: Catalog;
 }
 
 /** Used whenever the API gave us nothing usable. */
-export const FALLBACK_RELEASE_INFO: Release = {
-  tag: FALLBACK_RELEASE,
-  url: RELEASES_URL,
+export const FALLBACK_CATALOG: Catalog = {
+  latest: FALLBACK_RELEASE,
+  latestUrl: RELEASES_URL,
   assets: [],
 };
 
@@ -147,7 +175,7 @@ export function formatStars(n: number): string {
  * Normalize one GitHub release-asset payload. Returns `null` for things a
  * visitor should never be offered (checksums, signatures).
  */
-function toAsset(raw: unknown): ReleaseAsset | null {
+function toAsset(raw: unknown, tag: string, releaseUrl: string): ReleaseAsset | null {
   if (!raw || typeof raw !== 'object') return null;
   const a = raw as Record<string, unknown>;
   const name = typeof a.name === 'string' ? a.name : '';
@@ -162,39 +190,91 @@ function toAsset(raw: unknown): ReleaseAsset | null {
     os: rule?.os ?? 'other',
     kind: rule?.kind ?? 'download',
     rank: rule?.rank ?? 9,
+    tag,
+    releaseUrl,
   };
 }
 
 /**
- * Normalize a GitHub `releases/latest` payload into our `Release` shape.
- * Returns `null` if the payload isn't a release (404 body, rate-limit body…).
+ * Build the download catalog from a GitHub `/releases` payload.
+ *
+ * Walks the releases newest-first and, for each platform, keeps the assets from
+ * the first release that has any build for it. So a release that ships Linux
+ * and macOS but holds back Windows still leaves Windows visitors pointed at the
+ * newest Windows build that exists, rather than at the releases page.
+ *
+ * Assets are taken per-release rather than per-file so a platform's set stays
+ * internally consistent — a visitor never gets an AppImage from one version
+ * alongside a Flatpak from another.
+ *
+ * Returns `null` if the payload isn't a usable release array (a rate-limit
+ * body, a 404, an empty repo).
  */
-export function toRelease(raw: unknown): Release | null {
-  if (!raw || typeof raw !== 'object') return null;
-  const r = raw as Record<string, unknown>;
-  if (typeof r.tag_name !== 'string' || !r.tag_name) return null;
+export function toCatalog(raw: unknown): Catalog | null {
+  if (!Array.isArray(raw)) return null;
 
-  const assets = (Array.isArray(r.assets) ? r.assets : [])
-    .map(toAsset)
-    .filter((a): a is ReleaseAsset => a !== null)
+  const releases = raw
+    .filter((r): r is Record<string, unknown> => !!r && typeof r === 'object')
+    // Drafts aren't public and prereleases aren't what a download button should
+    // hand someone — the same two exclusions GitHub's own `/latest` applies.
+    .filter((r) => typeof r.tag_name === 'string' && r.tag_name && !r.draft && !r.prerelease)
+    // The API returns newest-first, but sort defensively so a re-tagged or
+    // back-dated release can't quietly become "latest".
     .sort(
       (a, b) =>
-        OS_ORDER.indexOf(a.os) - OS_ORDER.indexOf(b.os) ||
-        a.rank - b.rank ||
-        a.name.localeCompare(b.name),
+        Date.parse(String(b.published_at ?? b.created_at ?? 0)) -
+        Date.parse(String(a.published_at ?? a.created_at ?? 0)),
     );
 
+  if (!releases.length) return null;
+
+  const newest = releases[0];
+  const assets: ReleaseAsset[] = [];
+  const covered = new Set<OS>();
+
+  for (const r of releases) {
+    if (covered.size === OS_ORDER.length) break;
+    const tag = String(r.tag_name);
+    const releaseUrl = typeof r.html_url === 'string' ? r.html_url : RELEASES_URL;
+    const parsed = (Array.isArray(r.assets) ? r.assets : [])
+      .map((a) => toAsset(a, tag, releaseUrl))
+      .filter((a): a is ReleaseAsset => a !== null);
+
+    for (const os of OS_ORDER) {
+      if (covered.has(os)) continue;
+      const forOs = parsed.filter((a) => a.os === os);
+      if (!forOs.length) continue;
+      covered.add(os);
+      assets.push(...forOs);
+    }
+  }
+
+  assets.sort(
+    (a, b) =>
+      OS_ORDER.indexOf(a.os) - OS_ORDER.indexOf(b.os) ||
+      a.rank - b.rank ||
+      a.name.localeCompare(b.name),
+  );
+
   return {
-    tag: r.tag_name,
-    url: typeof r.html_url === 'string' ? r.html_url : RELEASES_URL,
+    latest: String(newest.tag_name),
+    latestUrl: typeof newest.html_url === 'string' ? newest.html_url : RELEASES_URL,
     assets,
   };
 }
 
 /** The asset a visitor on `os` should get, or `null` if we ship nothing for it. */
-export function pickAsset(release: Release, os: OS): ReleaseAsset | null {
+export function pickAsset(catalog: Catalog, os: OS): ReleaseAsset | null {
   if (os === 'other') return null;
-  return release.assets.find((a) => a.os === os) ?? null;
+  return catalog.assets.find((a) => a.os === os) ?? null;
+}
+
+/**
+ * True when this asset comes from an older release than the newest one —
+ * i.e. the platform was skipped in the latest release and we've fallen back.
+ */
+export function isBehindLatest(asset: ReleaseAsset, catalog: Catalog): boolean {
+  return asset.tag !== catalog.latest;
 }
 
 /** Classify a single platform/UA string. `null` means "no opinion". */

@@ -9,7 +9,7 @@ import { REPO_URL, RELEASES_URL, LICENSE, formatStars } from '../data/site';
 
 // Build-time values; `scripts/github-live.ts` refreshes both in the browser
 // through the [data-gh-stars] / [data-gh-tag] hooks.
-const { stars, release } = await getSnapshot();
+const { stars, catalog } = await getSnapshot();
 ---
 
 <section id="community" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
@@ -137,7 +137,7 @@ const { stars, release } = await getSnapshot();
             ></circle>
           </svg>
           Releases
-          <span data-gh-tag class="font-mono text-xs text-grid">{release.tag}</span>
+          <span data-gh-tag class="font-mono text-xs text-grid">{catalog.latest}</span>
         </a>
 
         <!-- Donate (prominent accent CTA → the donation page) -->

@@ -25,7 +25,7 @@ const links = [
 ];
 
 // Fetched at build time; falls back gracefully to a "Star" label.
-const { stars, release } = await getSnapshot();
+const { stars, catalog } = await getSnapshot();
 const starLabel = stars && stars > 0 ? formatStars(stars) : 'Star';
 ---
 
@@ -93,7 +93,7 @@ const starLabel = stars && stars > 0 ? formatStars(stars) : 'Star';
         class="hidden items-center gap-1.5 rounded-lg border border-line-strong bg-paper-2 px-3 py-2 text-sm text-ink transition-colors hover:border-ink/30 lg:inline-flex"
       >
         Releases
-        <span data-gh-tag class="font-mono text-[0.7rem] text-ink-faint">{release.tag}</span>
+        <span data-gh-tag class="font-mono text-[0.7rem] text-ink-faint">{catalog.latest}</span>
       </a>
 
       <a
@@ -144,7 +144,7 @@ const starLabel = stars && stars > 0 ? formatStars(stars) : 'Star';
       </li>
       <li>
         <a href={RELEASES_URL} target="_blank" rel="noopener" class="block rounded-lg px-3 py-2.5 text-sm text-ink-soft hover:bg-panel">
-          Releases · <span data-gh-tag>{release.tag}</span>
+          Releases · <span data-gh-tag>{catalog.latest}</span>
         </a>
       </li>
       <li>

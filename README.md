@@ -109,7 +109,7 @@ URLs** — so they are resolved twice:
 
 | When | What happens | Source |
 | ---- | ------------ | ------ |
-| Build time | `data/github.ts` fetches the repo + `releases/latest` once per build and renders real values into the HTML. Unreachable API ⇒ falls back to `FALLBACK_RELEASE` and a plain "Star" label; the build never fails. | server |
+| Build time | `data/github.ts` fetches the repo + the release list once per build and renders real values into the HTML. Unreachable API ⇒ falls back to `FALLBACK_RELEASE` and a plain "Star" label; the build never fails. | server |
 | Page view | `scripts/github-live.ts` re-reads both endpoints and updates every `[data-gh-stars]`, `[data-gh-tag]` and `[data-download]` in place. | browser |
 
 So a visitor always sees the current release even if the site hasn't been
@@ -125,17 +125,33 @@ destructive.
 the releases page, with every artifact listed in the small line beneath it.
 That's what no-JS visitors and crawlers get, and it is always correct.
 
-In the browser, `detectOS()` then retargets it at the matching artifact:
+In the browser, `detectOS()` then retargets it at the matching artifact —
+`.exe` for Windows, `.AppImage` for Linux, `.dmg` for macOS. Everything else
+drops into the small "other downloads" line, so no artifact is ever hidden, just
+de-emphasized. A phone or an unrecognized platform keeps the neutral button.
 
-| Visitor | Button | Direct link |
-| ------- | ------ | ----------- |
-| Windows | `Download for Windows` | `.exe` installer |
-| Linux | `Download for Linux` | `.AppImage` |
-| macOS | `Download` | releases page + "No macOS build yet — build from source" |
-| Phone / unknown | `Download` | releases page |
+### Releases that skip a platform
 
-Everything else drops into the small "other downloads" line, so no artifact is
-ever hidden — just de-emphasized.
+A release doesn't have to ship every platform — a Windows build can be held back
+while it's still being tested. So the site works from a **catalog** rather than a
+single release: `toCatalog()` walks the release list newest-first and, for each
+platform, keeps the builds from the first release that has any. A visitor on the
+skipped platform is offered the newest build that actually exists for them
+instead of being dumped on the releases page.
+
+When that happens the version chip names the release the button really hands
+over, not the newest one, and the small line says why:
+
+> **Download for Windows** `v0.4.0`
+> installer · 40 MB · v0.5.0 has no Windows build yet · Linux AppImage · …
+
+Note the two different meanings of "version" on the page, and the two hooks that
+keep them apart: `[data-gh-tag]` is the newest release (navbar, community band)
+and `[data-dl-tag]` is the release this particular button serves. Assets are
+taken per release rather than per file, so a platform's set stays internally
+consistent — nobody gets an AppImage from one version beside a Flatpak from
+another. `RELEASE_LOOKBACK` bounds how far back to search; past that the button
+falls back to the releases page.
 
 **Adding a new package format** (a `.deb`, an `.rpm`, an `.msix`) needs exactly
 one line in `ASSET_RULES` in [`src/data/site.ts`](src/data/site.ts); the button,

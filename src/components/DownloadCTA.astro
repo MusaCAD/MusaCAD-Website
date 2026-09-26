@@ -12,8 +12,12 @@
  *  2. In the browser, `scripts/github-live.ts` reads that JSON, detects the
  *     visitor's OS and rewrites the button to the matching artifact (Windows →
  *     `.exe`, Linux → AppImage), demoting the rest to the small line. It then
- *     re-fetches the release from the API so a visit after a new release shows
- *     the new version without the site being rebuilt.
+ *     re-fetches from the API so a visit after a new release shows the new
+ *     version without the site being rebuilt.
+ *
+ * The catalog spans releases: when the newest release skips a platform, that
+ * platform's button points at the newest release that does have a build for it,
+ * and the version chip names *that* release rather than the newest one.
  *
  * Both passes share the classification rules in `data/site.ts`, so the two
  * renderings can't drift.
@@ -23,11 +27,11 @@
  *   [data-dl-primary]     the anchor itself
  *   [data-dl-icon="<os>"] one icon per OS; all but the active one are hidden
  *   [data-dl-label]       button text
- *   [data-gh-tag]         version chip (also refreshed site-wide)
+ *   [data-dl-tag]         version chip — the release this button hands you
  *   [data-dl-alt]         the small mono line, rebuilt wholesale
  */
 import { getSnapshot } from '../data/github';
-import { RELEASES_URL, assetLabel, assetTitle } from '../data/site';
+import { RELEASES_URL, assetLabel, assetTitle, isBehindLatest } from '../data/site';
 
 interface Props {
   /** Classes for the primary button (callers own its size). */
@@ -44,11 +48,11 @@ const {
   ...rest
 } = Astro.props;
 
-const { release } = await getSnapshot();
+const { catalog } = await getSnapshot();
 
 // `</script>` can't appear in a GitHub asset name, but escaping `<` keeps the
 // inline JSON block valid no matter what lands in a future release.
-const releaseJson = JSON.stringify(release).replace(/</g, '\\u003c');
+const catalogJson = JSON.stringify(catalog).replace(/</g, '\\u003c');
 ---
 
 <div data-download class={`flex flex-col gap-3 ${rootClass}`} {...rest}>
@@ -111,7 +115,12 @@ const releaseJson = JSON.stringify(release).replace(/</g, '\\u003c');
       </span>
 
       <span data-dl-label>Download</span>
-      <span data-gh-tag class="font-mono text-xs opacity-80">{release.tag}</span>
+      <!--
+        Deliberately NOT [data-gh-tag]: that hook means "the newest release" and
+        is refreshed site-wide. This chip names the release the button actually
+        hands you, which is an older one when the newest skipped this platform.
+      -->
+      <span data-dl-tag class="font-mono text-xs opacity-80">{catalog.latest}</span>
     </a>
 
     <!-- Companion action (e.g. "View on GitHub", "Read BUILD.md"). -->
@@ -127,14 +136,16 @@ const releaseJson = JSON.stringify(release).replace(/</g, '\\u003c');
     class="flex flex-wrap items-center gap-x-2 gap-y-1 px-0.5 font-mono text-[0.72rem] text-ink-faint"
   >
     {
-      release.assets.map((asset) => (
+      catalog.assets.map((asset) => (
         <>
           <a
             href={asset.url}
             title={assetTitle(asset)}
             class="underline decoration-line-strong underline-offset-[3px] transition-colors hover:text-ink-soft hover:decoration-ink-faint"
           >
-            {assetLabel(asset)}
+            {isBehindLatest(asset, catalog)
+              ? `${assetLabel(asset)} ${asset.tag}`
+              : assetLabel(asset)}
           </a>
           <span aria-hidden="true">·</span>
         </>
@@ -150,11 +161,11 @@ const releaseJson = JSON.stringify(release).replace(/</g, '\\u003c');
     </a>
   </p>
 
-  <!-- Build-time release snapshot the client script starts from. -->
+  <!-- Build-time download catalog the client script starts from. -->
   <script
     type="application/json"
     data-dl-release
     is:inline
-    set:html={releaseJson}
+    set:html={catalogJson}
   />
 </div>
