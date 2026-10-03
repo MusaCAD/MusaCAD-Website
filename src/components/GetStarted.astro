@@ -38,11 +38,14 @@ const PREREQS = [
   </SectionHeading>
 
   <!-- Two columns on desktop: terminal on the left, prereqs/actions on the right. -->
-  <div class="mt-12 grid gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-8">
+  <div class="mt-12 grid gap-6 lg:grid-cols-[1.15fr_1fr] lg:items-start lg:gap-8">
     <!-- ============================ TERMINAL ============================ -->
+    <!-- Natural height + sticky: the right column runs taller (prerequisites,
+         downloads, the Flatpak panel), so rather than stretching into an empty
+         box the terminal rides alongside it as the visitor scrolls. -->
     <div
       data-reveal
-      class="crop-frame overflow-hidden rounded-2xl border border-line-strong bg-paper-2 shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]"
+      class="crop-frame overflow-hidden rounded-2xl lg:sticky lg:top-[calc(var(--nav-h)+1.5rem)] border border-line-strong bg-paper-2 shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]"
     >
       <!-- faux terminal top-bar -->
       <div
@@ -59,7 +62,7 @@ const PREREQS = [
           type="button"
           data-copy
           data-commands={BUILD_COMMANDS.join('\n')}
-          class="inline-flex items-center gap-1.5 rounded-md border border-line-strong bg-paper-2 px-2.5 py-1 font-mono text-[0.7rem] text-ink-soft transition-colors hover:border-ink/30 hover:text-ink"
+          class="inline-flex items-center gap-1.5 rounded-md border border-line-strong bg-paper-2 px-2.5 py-1 font-mono text-[0.7rem] text-ink-soft transition-colors hover:border-ink/30 hover:text-ink data-[copied]:border-accent-2/50 data-[copied]:text-accent-2"
           aria-label="Copy build commands to clipboard"
         >
           <!-- copy glyph (hidden in the copied state via the [data-copied] swap) -->
@@ -196,6 +199,7 @@ const PREREQS = [
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { copyText } from '../scripts/clipboard';
   gsap.registerPlugin(ScrollTrigger);
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -234,38 +238,20 @@ const PREREQS = [
       if (copyLabel) copyLabel.textContent = 'Copied';
       copyIcon?.classList.add('hidden');
       checkIcon?.classList.remove('hidden');
-      copyBtn.classList.add('text-accent-2', 'border-accent-2/50');
+      copyBtn.toggleAttribute('data-copied', true);
       // Revert to the idle state after ~1.5s.
       clearTimeout(resetTimer);
       resetTimer = setTimeout(() => {
         if (copyLabel) copyLabel.textContent = 'Copy';
         checkIcon?.classList.add('hidden');
         copyIcon?.classList.remove('hidden');
-        copyBtn.classList.remove('text-accent-2', 'border-accent-2/50');
+        copyBtn.toggleAttribute('data-copied', false);
       }, 1500);
     };
 
     copyBtn.addEventListener('click', async () => {
-      const text = copyBtn.dataset.commands ?? '';
-      try {
-        await navigator.clipboard.writeText(text);
-        showCopied();
-      } catch {
-        // Fallback for browsers/contexts without the async clipboard API.
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try {
-          document.execCommand('copy');
-          showCopied();
-        } catch {
-          /* give up silently — the commands are still visible on screen */
-        }
-        ta.remove();
-      }
+      // On failure, give up silently — the commands are still visible on screen.
+      if (await copyText(copyBtn.dataset.commands ?? '')) showCopied();
     });
   }
 </script>

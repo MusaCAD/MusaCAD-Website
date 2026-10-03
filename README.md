@@ -71,14 +71,16 @@ src/
   components/
     Navbar.astro          # sticky glass nav + live GitHub star count
     Hero.astro            # headline, CTAs, interactive CAD viewport, command line
-    DownloadCTA.astro     # OS-aware download button + "other downloads" line
+    DownloadCTA.astro     # OS-aware download button, "other downloads" line, Flatpak panel
   scripts/
     smooth-scroll.ts      # Lenis <-> GSAP ScrollTrigger integration
     hero-canvas.ts        # Three.js CAD drawing (draws on load, snap markers, parallax)
     github-live.ts        # runtime refresh of stars / release tag / download links
+    clipboard.ts          # copy-to-clipboard with a fallback for older browsers
   data/
     site.ts               # canonical links + release model + OS & asset rules (pure)
     github.ts             # build-time GitHub fetch (server only)
+    flathub.ts            # build-time Flathub verification status (server only)
   styles/global.css       # design tokens (@theme) + base + component layer
   pages/index.astro       # the page
 astro.config.mjs          # site URL + Tailwind v4 Vite plugin
@@ -129,6 +131,33 @@ In the browser, `detectOS()` then retargets it at the matching artifact —
 `.exe` for Windows, `.AppImage` for Linux, `.dmg` for macOS. Everything else
 drops into the small "other downloads" line, so no artifact is ever hidden, just
 de-emphasized. A phone or an unrecognized platform keeps the neutral button.
+
+### Flatpak on Linux
+
+Linux visitors get a second route under the AppImage button: the two Flathub
+commands, each with its own copy button.
+
+```sh
+flatpak install flathub org.musacad.MusaCAD
+flatpak run org.musacad.MusaCAD
+```
+
+Each step's number ticks once its command is copied and stays ticked, so the
+install reads as progress. The panel links the
+[Flathub listing](https://flathub.org/apps/org.musacad.MusaCAD) and Flathub's
+setup guide, since Ubuntu and others ship without the Flathub remote and the
+install command fails without it. On narrow screens the commands wrap at spaces
+under a hanging `$` rather than scrolling sideways.
+
+Where the panel shows, the GitHub `.flatpak` bundle drops out of the small line
+— two Flatpak routes side by side would only raise "which one?". Windows and
+macOS visitors don't see the panel at all; no-JS visitors always do.
+
+The "Verified on Flathub" label is read from Flathub's API at build time rather
+than asserted, and quietly disappears if that status ever lapses. The
+verification itself rests on
+[`public/.well-known/org.flathub.VerifiedApps.txt`](public/.well-known/org.flathub.VerifiedApps.txt)
+— keep that file.
 
 ### Releases that skip a platform
 

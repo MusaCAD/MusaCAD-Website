@@ -165,6 +165,13 @@ function renderDownload(root: HTMLElement, catalog: Catalog, os: OS): void {
   // always the newest one — hence its own hook rather than [data-gh-tag].
   if (tag) tag.textContent = chosen ? chosen.tag : catalog.latest;
 
+  // The Flathub panel only helps Linux visitors. Where it shows, it supersedes
+  // the GitHub .flatpak bundle, so that link leaves the small line below —
+  // two Flatpak routes side by side would only raise "which one?".
+  const flatpak = root.querySelector<HTMLElement>('[data-flatpak]');
+  const flathubShown = !!flatpak && os === 'linux';
+  if (flatpak) flatpak.hidden = !flathubShown;
+
   // Swap in the platform glyph.
   const iconFor = chosen ? os : 'other';
   root.querySelectorAll<SVGElement>('[data-dl-icon]').forEach((icon) => {
@@ -191,6 +198,7 @@ function renderDownload(root: HTMLElement, catalog: Catalog, os: OS): void {
 
   for (const asset of catalog.assets) {
     if (asset === chosen) continue;
+    if (flathubShown && /\.flatpak$/i.test(asset.name)) continue;
     // Name the version only when it differs from the newest release, so the
     // common case stays uncluttered.
     const text = isBehindLatest(asset, catalog)

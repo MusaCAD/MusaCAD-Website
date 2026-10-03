@@ -31,6 +31,24 @@ export const RELEASES_API = `${REPO_API}/releases?per_page=${RELEASE_LOOKBACK}`;
 export const ARCHITECTURE_URL = `${REPO_URL}/blob/main/docs/ARCHITECTURE.md`;
 export const BUILD_URL = `${REPO_URL}/blob/main/docs/BUILD.md`;
 
+/**
+ * The Flathub listing. Its "verified" badge is earned through
+ * public/.well-known/org.flathub.VerifiedApps.txt on this site — keep that file.
+ */
+export const FLATHUB_APP_ID = 'org.musacad.MusaCAD';
+// Locale-neutral: Flathub redirects each visitor to their own language.
+export const FLATHUB_URL = `https://flathub.org/apps/${FLATHUB_APP_ID}`;
+export const FLATHUB_APPSTREAM_API = `https://flathub.org/api/v2/appstream/${FLATHUB_APP_ID}`;
+// Many distros (Ubuntu among them) don't ship the Flathub remote, and the
+// install command fails without it.
+export const FLATHUB_SETUP_URL = 'https://flathub.org/setup';
+
+/** The two commands the Linux download panel offers, in the order they're run. */
+export const FLATPAK_STEPS = [
+  { label: 'Install', command: `flatpak install flathub ${FLATHUB_APP_ID}` },
+  { label: 'Run', command: `flatpak run ${FLATHUB_APP_ID}` },
+] as const;
+
 export const LICENSE = 'LGPL-3.0-or-later';
 export const PLATFORMS = ['Linux', 'Windows'];
 
