@@ -1,28 +1,64 @@
 ---
-// Base document shell: fonts, SEO/meta, favicons, the blueprint background,
-// and the site-wide smooth-scroll bootstrap. Every page renders inside this.
+// Base document shell: fonts, SEO/meta, structured data, favicons, the
+// blueprint background, and the site-wide smooth-scroll bootstrap. Every page
+// renders inside this.
 
 // Self-hosted variable fonts (bundled by Vite, no external requests).
 import '@fontsource-variable/space-grotesk';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
+import { getSnapshot } from '../data/github';
+import { MAINTAINER } from '../data/site';
+import { OG_IMAGE, SITE_NAME, absolute, pageGraph, siteGraph, type Crumb } from '../data/seo';
 
 interface Props {
+  /** The full <title>. Lead with what the page is about; the brand goes last. */
   title?: string;
+  /** 70–160 characters: what a searcher learns before they click. */
   description?: string;
+  /** Share card; defaults to the site-wide 1200×630 image. */
+  ogImage?: { path: string; width: number; height: number; alt: string };
+  /** schema.org type of this page (WebPage, FAQPage, AboutPage, …). */
+  type?: string;
+  /** Breadcrumb trail below Home, for structured data. */
+  crumbs?: Crumb[];
+  /** Extra JSON-LD nodes this page contributes to the graph. */
+  structuredData?: Record<string, unknown>[];
+  /** Extra properties for this page's own node (e.g. an FAQPage's mainEntity). */
+  pageData?: Record<string, unknown>;
+  /** Keep this page out of search results (the 404 page). */
+  noindex?: boolean;
 }
 
 const {
-  title = 'Musa CAD — CAD that moves at 144 Hz',
-  description = 'A high-performance, multi-threaded 2D CAD engine in modern C++23. GPU-accelerated, data-oriented, and clone-and-build clean.',
+  title = 'Musa CAD — Free, Open-Source AutoCAD Alternative for 2D CAD',
+  description = "Musa CAD is free, open-source 2D CAD with AutoCAD's commands, ribbon and shortcuts. DWG and DXF, layers, blocks, dimensions. For Windows and Linux.",
+  ogImage = OG_IMAGE,
+  type = 'WebPage',
+  crumbs,
+  structuredData = [],
+  pageData,
+  noindex = false,
 } = Astro.props;
 
-// BASE_URL respects the `base` config (e.g. '/MusaCAD-Website/' or '/'), so
-// asset and canonical URLs stay correct on both project-pages and a custom domain.
 const base = import.meta.env.BASE_URL;
-const canonical = new URL(base, Astro.site).href;
-const ogImage = new URL(`${base}musacad_mark.png`, Astro.site).href;
+// Each page is its own canonical (Astro.url carries the trailing slash Pages
+// serves), so search engines never fold a subpage into the home page.
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = absolute(ogImage.path);
+
+const { catalog } = await getSnapshot();
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    ...siteGraph(catalog),
+    ...(noindex ? [] : pageGraph({ url: canonical, title, description, type, crumbs, extra: pageData })),
+    ...structuredData,
+  ],
+};
+// `</script>` can't appear in our own data, but escape `<` regardless.
+const graphJson = JSON.stringify(graph).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
@@ -34,8 +70,21 @@ const ogImage = new URL(`${base}musacad_mark.png`, Astro.site).href;
 
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {
+      noindex ? (
+        <meta name="robots" content="noindex, follow" />
+      ) : (
+        <>
+          <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+          <link rel="canonical" href={canonical} />
+        </>
+      )
+    }
+    <meta name="author" content={MAINTAINER} />
+    <meta name="application-name" content={SITE_NAME} />
+    <meta name="apple-mobile-web-app-title" content={SITE_NAME} />
     <meta name="theme-color" content="#faf9f6" />
+    <meta name="color-scheme" content="light" />
 
     <!-- Mark JS as present so reveal targets can hide pre-animation without
          risking a permanently-hidden state for no-JS users. -->
@@ -43,24 +92,38 @@ const ogImage = new URL(`${base}musacad_mark.png`, Astro.site).href;
       document.documentElement.classList.add('js');
     </script>
 
-    <!-- Favicons (optimized raster derived from the official logo) -->
+    <!-- Icons: the vector logo where supported, rasters everywhere else. -->
+    <link rel="icon" type="image/svg+xml" href={`${base}musacad_logo.svg`} />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon.png`} />
     <link rel="icon" type="image/png" sizes="48x48" href={`${base}favicon-48.png`} />
     <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
+    <link rel="manifest" href={`${base}site.webmanifest`} />
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImage} />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(ogImage.width)} />
+    <meta property="og:image:height" content={String(ogImage.height)} />
+    <meta property="og:image:alt" content={ogImage.alt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:alt" content={ogImage.alt} />
+
+    <!-- Structured data: who makes Musa CAD, what it is, and what this page is. -->
+    <script type="application/ld+json" is:inline set:html={graphJson} />
   </head>
 
   <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+
     <!-- Faint blueprint grid, fixed behind everything, parallaxes on scroll -->
     <div class="blueprint-bg" data-blueprint aria-hidden="true"></div>
 
@@ -95,6 +158,8 @@ const ogImage = new URL(`${base}musacad_mark.png`, Astro.site).href;
           e.preventDefault();
           scrollTo(target as HTMLElement, -navH);
           history.replaceState(null, '', id);
+          // Skip link and other focusable targets: move keyboard focus too.
+          if (target.hasAttribute('tabindex')) (target as HTMLElement).focus({ preventScroll: true });
         });
       });
 

@@ -18,15 +18,21 @@
   --color-panel: #f5f3ec; /* recessed panels */
   --color-ink: #14181e; /* near-black text */
   --color-ink-soft: #586070; /* secondary text */
-  --color-ink-faint: #8a909c; /* tertiary / captions */
+  --color-ink-faint: #666e7d; /* tertiary / captions — still 4.6:1 on panel (WCAG AA) */
   --color-line: #e8e4da; /* hairline borders */
   --color-line-strong: #d8d3c6; /* stronger dividers */
 
   /* ---- brand ---- */
-  --color-accent: #f73c1c; /* logo fillet — CTAs, active states, hot geometry */
-  --color-accent-press: #d12f14; /* pressed / hover */
+  /* The logo's fillet orange (#f73c1c) is 3.5:1 on paper — fine for large type,
+     not for small text or white-on-orange buttons. So: --color-brand is the exact
+     logo hue for display type and decoration; --color-accent is the same hue
+     deepened just enough for WCAG AA (≥4.5:1 on white, paper and panel). */
+  --color-brand: #f73c1c; /* logo-exact — large headings, canvases, decoration */
+  --color-accent: #d82608; /* AA — CTAs, small accent text, active states */
+  --color-accent-press: #b51f06; /* pressed / hover; chip text on accent-soft */
   --color-accent-soft: #fde6e2; /* accent wash */
-  --color-accent-2: #0fa968; /* secondary — dimensions, center snaps */
+  --color-accent-2: #0b7a4b; /* AA green — small status text, copied states */
+  --color-accent-2-bright: #0fa968; /* dimension / snap green for strokes and markers */
   --color-brand-green: #0bd1b5; /* logo teal end face — highlight moments */
   --color-brand-navy: #0e2c4c; /* logo navy body — deep panels / footer */
   --color-grid: #cfd8e3; /* blueprint grid lines */
@@ -47,8 +53,8 @@
 :root {
   --paper: var(--color-paper);
   --ink: var(--color-ink);
-  --accent: var(--color-accent);
-  --accent-2: var(--color-accent-2);
+  --accent: var(--color-brand); /* canvases draw in the logo-exact hues */
+  --accent-2: var(--color-accent-2-bright);
   --grid: var(--color-grid);
   --nav-h: 4.5rem;
 }
@@ -239,7 +245,7 @@
   background: var(--color-paper-2);
 }
 .cad-chip[data-on] {
-  color: var(--color-accent);
+  color: var(--color-accent-press); /* 5.6:1 on accent-soft */
   border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-line));
   background: var(--color-accent-soft);
 }
@@ -270,6 +276,25 @@
   border-top: 0;
 }
 
+/* Hero entrance: pure CSS, so the copy paints with the first frame instead of
+   waiting for a script (that wait was most of the mobile LCP). Staggered by --i;
+   gated on .js like the rest, so no-JS visitors just see the page. */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+.js [data-hero-reveal] {
+  animation: hero-rise 0.9s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 40ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .js [data-hero-reveal] {
+    animation: none;
+  }
+}
+
 /* GSAP reveal targets: hide before animation *only* when JS is present, so
    no-JS users still see everything. Reduced-motion shows them immediately. */
 .js [data-reveal] {
@@ -298,5 +323,146 @@
     opacity: 1;
     transform: none;
   }
+}
+/* --- Decorative blueprint grids (backgrounds of individual panels) --- */
+.grid-fade-top {
+  background-image:
+    linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 120px);
+  mask-image: linear-gradient(to bottom, transparent, black 120px);
+}
+.grid-glow {
+  background-image:
+    linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
+}
+.grid-sheet {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-grid) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-grid) 55%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 50%, #000 60%, transparent 100%);
+  mask-image: radial-gradient(120% 100% at 50% 50%, #000 60%, transparent 100%);
+  opacity: 0.5;
+}
+.svg-nonscaling {
+  vector-effect: non-scaling-stroke;
+}
+
+/* --- Skip link: invisible until focused, then the first thing on screen --- */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: 0.6rem;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: transform 0.2s var(--ease-out-expo);
+}
+.skip-link:focus-visible {
+  transform: none;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* --- Long-form text (legal pages, FAQ answers) --- */
+.prose-doc {
+  color: var(--color-ink-soft);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+.prose-doc > * + * {
+  margin-top: 1.1em;
+}
+.prose-doc h2 {
+  margin-top: 2.4em;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  line-height: 1.2;
+  color: var(--color-ink);
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+}
+.prose-doc h3 {
+  margin-top: 1.8em;
+  font-size: 1.2rem;
+  line-height: 1.3;
+  color: var(--color-ink);
+  scroll-margin-top: calc(var(--nav-h) + 1.5rem);
+}
+.prose-doc h2 + *,
+.prose-doc h3 + * {
+  margin-top: 0.6em;
+}
+/* Links inside running text are underlined, not colour-only (WCAG 1.4.1). */
+.prose-doc a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+.prose-doc a:hover {
+  color: var(--color-accent-press);
+  text-decoration-color: var(--color-accent);
+}
+.prose-doc strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.prose-doc ul,
+.prose-doc ol {
+  padding-left: 1.35em;
+}
+.prose-doc ul {
+  list-style: square;
+}
+.prose-doc ol {
+  list-style: decimal;
+}
+.prose-doc li::marker {
+  color: var(--color-accent);
+}
+.prose-doc li + li {
+  margin-top: 0.45em;
+}
+.prose-doc code {
+  border: 1px solid var(--color-line);
+  border-radius: 0.3rem;
+  background: var(--color-panel);
+  padding: 0.08em 0.38em;
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  color: var(--color-ink);
+}
+.prose-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.prose-doc th,
+.prose-doc td {
+  border-bottom: 1px solid var(--color-line);
+  padding: 0.7rem 0.75rem 0.7rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-doc th {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
 }
 } /* end @layer components */

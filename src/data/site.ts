@@ -30,6 +30,18 @@ export const RELEASE_LOOKBACK = 10;
 export const RELEASES_API = `${REPO_API}/releases?per_page=${RELEASE_LOOKBACK}`;
 export const ARCHITECTURE_URL = `${REPO_URL}/blob/main/docs/ARCHITECTURE.md`;
 export const BUILD_URL = `${REPO_URL}/blob/main/docs/BUILD.md`;
+export const ISSUES_URL = `${REPO_URL}/issues`;
+export const ROADMAP_URL = `${REPO_URL}/blob/main/docs/ROADMAP.md`;
+export const COMMANDS_URL = `${REPO_URL}/blob/main/docs/COMMANDS.md`;
+export const CLI_URL = `${REPO_URL}/blob/main/docs/CLI.md`;
+export const CHANGELOG_URL = `${REPO_URL}/blob/main/CHANGELOG.md`;
+export const AUTOCAD_CONFIG_URL = `${REPO_URL}/blob/main/docs/AUTOCAD_CONFIG.md`;
+export const LICENSE_URL = 'https://www.gnu.org/licenses/lgpl-3.0.html';
+
+/** Who answers mail about the project — the address on the MusaCAD GitHub organization. */
+export const CONTACT_EMAIL = 'pranay@weberq.in';
+export const MAINTAINER = 'Pranay Kiran';
+export const MAINTAINER_URL = 'https://github.com/KiranPranay';
 
 /**
  * The Flathub listing. Its "verified" badge is earned through
@@ -50,7 +62,21 @@ export const FLATPAK_STEPS = [
 ] as const;
 
 export const LICENSE = 'LGPL-3.0-or-later';
-export const PLATFORMS = ['Linux', 'Windows'];
+
+/**
+ * Where Musa CAD runs, and how well. macOS is a preview: the app needs OpenGL 4.5
+ * Core and macOS stops at 4.1, so the drawing viewport can't start there until the
+ * Metal renderer on the roadmap lands — the command-line tools already work.
+ * Say exactly this anywhere the platforms come up; it's the honest version.
+ */
+export const PLATFORM_SUPPORT = [
+  { os: 'windows', name: 'Windows', status: 'supported', detail: 'Windows 10 and 11, 64-bit' },
+  { os: 'linux', name: 'Linux', status: 'supported', detail: '64-bit; AppImage or Flathub' },
+  { os: 'macos', name: 'macOS', status: 'preview', detail: 'Apple silicon, macOS 12+; command line only for now' },
+] as const;
+
+/** What every machine needs, whichever platform. */
+export const GPU_REQUIREMENT = 'Graphics drivers with OpenGL 4.5';
 
 /**
  * Last-resort release tag. Only ever shown when GitHub was unreachable at build
@@ -82,6 +108,8 @@ export interface ReleaseAsset {
   tag: string;
   /** That release's page on GitHub. */
   releaseUrl: string;
+  /** URL of the `<name>.sha256` published beside it, when the release has one. */
+  checksumUrl?: string;
 }
 
 /**
@@ -94,6 +122,8 @@ export interface Catalog {
   latest: string;
   /** That release's page on GitHub. */
   latestUrl: string;
+  /** When it was published (ISO 8601), or null when unknown. */
+  published: string | null;
   /**
    * One coherent set per platform: for each OS, every asset from the newest
    * release that has any build for it. Sorted by OS, then preference.
@@ -110,6 +140,7 @@ export interface Snapshot {
 export const FALLBACK_CATALOG: Catalog = {
   latest: FALLBACK_RELEASE,
   latestUrl: RELEASES_URL,
+  published: null,
   assets: [],
 };
 
@@ -254,9 +285,18 @@ export function toCatalog(raw: unknown): Catalog | null {
     if (covered.size === OS_ORDER.length) break;
     const tag = String(r.tag_name);
     const releaseUrl = typeof r.html_url === 'string' ? r.html_url : RELEASES_URL;
-    const parsed = (Array.isArray(r.assets) ? r.assets : [])
+    const rawAssets = (Array.isArray(r.assets) ? r.assets : []) as Record<string, unknown>[];
+    // Checksums are filtered out as downloads, but remembered so each file can
+    // link the `<name>.sha256` published beside it.
+    const checksums = new Map(
+      rawAssets
+        .filter((a) => typeof a?.name === 'string' && /\.sha256$/i.test(a.name as string))
+        .map((a) => [String(a.name).replace(/\.sha256$/i, ''), String(a.browser_download_url)]),
+    );
+    const parsed = rawAssets
       .map((a) => toAsset(a, tag, releaseUrl))
-      .filter((a): a is ReleaseAsset => a !== null);
+      .filter((a): a is ReleaseAsset => a !== null)
+      .map((a) => (checksums.has(a.name) ? { ...a, checksumUrl: checksums.get(a.name) } : a));
 
     for (const os of OS_ORDER) {
       if (covered.has(os)) continue;
@@ -277,6 +317,7 @@ export function toCatalog(raw: unknown): Catalog | null {
   return {
     latest: String(newest.tag_name),
     latestUrl: typeof newest.html_url === 'string' ? newest.html_url : RELEASES_URL,
+    published: typeof newest.published_at === 'string' ? newest.published_at : null,
     assets,
   };
 }

@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- The 1200×630 share card. Rendered to public/og-image.png by make-images.sh. -->
+<meta charset="utf-8" />
+<style>
+  @font-face { font-family: 'SG'; src: url('../node_modules/@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2'); font-weight: 300 700; }
+  @font-face { font-family: 'IN'; src: url('../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'); font-weight: 100 900; }
+  @font-face { font-family: 'JB'; src: url('../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2'); font-weight: 100 800; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    position: relative; font-family: 'IN', sans-serif; color: #14181e; background: #faf9f6;
+    background-image:
+      linear-gradient(to right, rgba(207,216,227,.55) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(207,216,227,.55) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .copy { position: absolute; left: 64px; top: 58px; width: 560px; }
+  .brand { display: flex; align-items: center; gap: 14px; font: 600 34px/1 'SG'; letter-spacing: -.02em; }
+  .brand img { width: 52px; height: 52px; }
+  .brand b { color: #f73c1c; font-weight: 600; }
+  h1 { margin: 44px 0 0; font: 600 64px/1.02 'SG'; letter-spacing: -.035em; }
+  h1 span { color: #f73c1c; }
+  p { margin: 22px 0 0; font-size: 25px; line-height: 1.4; color: #586070; }
+  p strong { color: #14181e; font-weight: 600; }
+  .chips { position: absolute; left: 64px; bottom: 52px; display: flex; gap: 10px; }
+  .chip { font: 500 16px/1 'JB'; letter-spacing: .02em; padding: 10px 14px; border-radius: 8px;
+          border: 1.5px solid #d8d3c6; background: #fff; color: #586070; }
+  .chip.on { color: #f73c1c; border-color: rgba(247,60,28,.45); background: #fde6e2; }
+  .shot { position: absolute; left: 660px; top: 92px; width: 640px; border-radius: 14px; overflow: hidden;
+          border: 1.5px solid #d8d3c6; background: #fff; box-shadow: 0 40px 80px -40px rgba(20,24,30,.45); }
+  .bar { height: 30px; display: flex; align-items: center; gap: 7px; padding: 0 14px; background: #f5f3ec; border-bottom: 1px solid #e8e4da; }
+  .bar i { width: 10px; height: 10px; border-radius: 50%; background: #d8d3c6; }
+  .shot img { display: block; width: 100%; }
+  .mark { position: absolute; width: 16px; height: 16px; border: 2px solid #d8d3c6; }
+</style>
+<div class="copy">
+  <div class="brand"><img src="../public/musacad_logo.svg" alt="" /><span>Musa<b>CAD</b></span></div>
+  <h1>Free, open-source<br /><span>2D CAD.</span></h1>
+  <p>An AutoCAD alternative — <strong>the same commands, ribbon and shortcuts</strong>, with DWG and DXF.</p>
+</div>
+<div class="chips">
+  <span class="chip on">Windows · Linux</span><span class="chip">macOS preview</span><span class="chip">LGPL-3.0</span>
+</div>
+<div class="shot"><div class="bar"><i></i><i></i><i></i></div><img src="../public/screenshots/overview-1000.webp" alt="" /></div>
