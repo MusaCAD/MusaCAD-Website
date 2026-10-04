@@ -17,39 +17,45 @@ import { REPO_URL } from '../data/site';
     <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_1fr] lg:gap-10">
       <!-- ============================== LEFT: copy ============================== -->
       <div class="max-w-xl">
-        <!-- eyebrow -->
-        <div
-          data-reveal
-          class="mb-6 inline-flex items-center gap-2.5 rounded-full border border-line-strong bg-paper-2/80 py-1.5 pl-2.5 pr-3.5 font-mono text-[0.72rem] tracking-wide text-ink-soft"
+        <!--
+          The page's one <h1> says what Musa CAD is — that's what search engines
+          and screen readers take as the topic. The slogan below it is display
+          text, not a heading. Reveals are CSS (data-hero-reveal), so the text
+          paints with the first frame instead of waiting for JavaScript.
+        -->
+        <h1
+          data-hero-reveal
+          class="[--i:0] mb-6 inline-flex items-center gap-2.5 rounded-full border border-line-strong bg-paper-2/80 py-1.5 pl-2.5 pr-3.5 font-mono text-[0.72rem] font-normal leading-normal tracking-wide text-ink-soft"
         >
-          <span class="relative flex h-2 w-2">
+          <span class="relative flex h-2 w-2 shrink-0" aria-hidden="true">
             <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
             <span class="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
           </span>
-          2D CAD ENGINE · MODERN C++23
-        </div>
-
-        <!-- headline -->
-        <h1
-          data-reveal
-          class="text-5xl font-semibold sm:text-6xl lg:text-[4.6rem]"
-        >
-          CAD that moves<br />
-          at <span class="text-accent">144&#8202;Hz.</span>
+          <span><span class="sr-only">Musa CAD: </span>FREE, OPEN-SOURCE AUTOCAD ALTERNATIVE</span>
         </h1>
 
-        <!-- subhead (from README) -->
+        <!-- slogan -->
         <p
-          data-reveal
-          class="mt-6 max-w-lg text-lg leading-relaxed text-ink-soft"
+          data-hero-reveal
+          class="[--i:1] font-display text-5xl font-semibold leading-[1.04] tracking-[-0.022em] text-ink [text-wrap:balance] sm:text-6xl lg:text-[4.6rem]"
         >
-          A high-performance, multi-threaded 2D CAD engine in modern C++23.
-          GPU-accelerated, data-oriented, and
-          <span class="text-ink">clone-and-build clean.</span>
+          CAD that moves<br>
+          at <span class="text-brand">144&#8202;Hz.</span>
+        </p>
+
+        <!-- subhead -->
+        <p
+          data-hero-reveal
+          class="[--i:2] mt-6 max-w-lg text-lg leading-relaxed text-ink-soft"
+        >
+          Musa CAD is free, open-source 2D CAD that works the way AutoCAD does —
+          the same commands, ribbon and shortcuts, with DWG and DXF — on Windows
+          and Linux. Multi-threaded and GPU-accelerated, so
+          <span class="text-ink">large drawings stay smooth.</span>
         </p>
 
         <!-- CTAs — the download button retargets itself to the visitor's OS -->
-        <DownloadCTA class="mt-9" data-reveal>
+        <DownloadCTA class="mt-9 [--i:3]" data-hero-reveal>
           <a
             href={REPO_URL}
             target="_blank"
@@ -64,24 +70,24 @@ import { REPO_URL } from '../data/site';
         </DownloadCTA>
 
         <!-- meta stat strip -->
-        <dl
-          data-reveal
-          class="mt-10 flex flex-wrap gap-x-7 gap-y-3 font-mono text-xs text-ink-faint"
+        <ul
+          data-hero-reveal
+          class="[--i:4] mt-10 flex flex-wrap gap-x-7 gap-y-3 font-mono text-xs text-ink-faint"
         >
-          <div class="flex items-center gap-2">
+          <li class="flex items-center gap-2">
             <span class="text-accent">144 Hz+</span> refresh target
-          </div>
-          <div class="flex items-center gap-2">
+          </li>
+          <li class="flex items-center gap-2">
             <span class="text-ink">1M</span> primitives
-          </div>
-          <div class="flex items-center gap-2">
+          </li>
+          <li class="flex items-center gap-2">
             <span class="text-ink">~4–6</span> draw calls
-          </div>
-        </dl>
+          </li>
+        </ul>
       </div>
 
       <!-- ====================== RIGHT: interactive viewport ===================== -->
-      <div data-reveal class="relative">
+      <div data-hero-reveal class="relative [--i:2]">
         <!-- decorative dimension note -->
         <div
           class="absolute -top-7 left-1 hidden font-mono text-[0.68rem] text-ink-faint sm:block"
@@ -117,6 +123,7 @@ import { REPO_URL } from '../data/site';
             <canvas
               data-hero-canvas
               class="cad-cursor block h-full w-full"
+              role="img"
               aria-label="Interactive CAD viewport drawing geometry"
             ></canvas>
 
@@ -177,7 +184,7 @@ import { REPO_URL } from '../data/site';
 
   <!-- scroll cue -->
   <a
-    href="#features"
+    href="#showcase"
     class="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 font-mono text-[0.68rem] tracking-widest text-ink-faint transition-colors hover:text-ink lg:flex"
   >
     SCROLL
@@ -188,35 +195,26 @@ import { REPO_URL } from '../data/site';
 </section>
 
 <script>
-  import gsap from 'gsap';
   import { initHeroCanvas } from '../scripts/hero-canvas';
 
   const prefersReduced = window.matchMedia(
     '(prefers-reduced-motion: reduce)',
   ).matches;
 
-  // --- Reveal the hero copy ---
-  const revealEls = gsap.utils.toArray<HTMLElement>('[data-reveal]');
-  if (prefersReduced) {
-    gsap.set(revealEls, { opacity: 1, y: 0 });
-  } else {
-    gsap.set(revealEls, { opacity: 0, y: 18 });
-    gsap.to(revealEls, {
-      opacity: 1,
-      y: 0,
-      duration: 0.9,
-      ease: 'power3.out',
-      stagger: 0.09,
-      delay: 0.05,
-    });
-  }
-
   // --- Boot the interactive CAD canvas (Three.js is code-split inside) ---
+  // Once the page has painted and the browser is idle: the drawing animates in
+  // anyway, so a short wait is invisible, and Three.js no longer competes with
+  // the first render on slower phones.
   const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
   if (canvas) {
-    initHeroCanvas(canvas).catch((err) => {
-      console.warn('[hero] canvas unavailable:', err);
-    });
+    const boot = () =>
+      initHeroCanvas(canvas).catch((err) => {
+        console.warn('[hero] canvas unavailable:', err);
+      });
+    const whenIdle = () =>
+      'requestIdleCallback' in window ? requestIdleCallback(boot, { timeout: 1200 }) : setTimeout(boot, 150);
+    if (document.readyState === 'complete') whenIdle();
+    else addEventListener('load', whenIdle, { once: true });
   }
 
   // --- Live coordinate HUD + snap label (maps pointer -> faux model space) ---

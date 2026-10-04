@@ -1,5 +1,6 @@
 ---
-// FEATURES GRID — the 8 verbatim feature cards (README "What's inside").
+// ENGINE GRID — the 8 verbatim engine cards (README "What's inside"). The
+// drafter-facing feature list is Drafting.astro, which owns #features.
 // Each card is a bordered drawing-sheet panel on paper-2 with a CAD snap-marker
 // glyph, a font-display title, ink-soft detail copy, and a mono micro-tag.
 // The first card spans wider (md:col-span-2) for rhythm. Cards lift + reveal an
@@ -78,10 +79,10 @@ const features: Feature[] = [
 ];
 ---
 
-<section id="features" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
+<section id="engine" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
   <SectionHeading
     eyebrow="WHAT'S INSIDE"
-    titleHtml='Engineered like a <span class="text-accent">precision instrument</span>'
+    titleHtml='Engineered like a <span class="text-brand">precision instrument</span>'
   >
     <p class="mt-4 text-lg text-ink-soft">
       Eight load-bearing systems, no shortcuts. Three threads, a data-oriented

@@ -1,0 +1,41 @@
+---
+// SCREENSHOTS — the app itself, captured from release builds (no mock-ups).
+// One featured shot plus five, each with real alt text and a caption. WebP at
+// 500/1000px with explicit dimensions, lazy below the fold.
+import SectionHeading from './SectionHeading.astro';
+import { SCREENSHOTS } from '../data/screenshots';
+---
+
+<section id="screenshots" class="mx-auto max-w-7xl scroll-mt-[var(--nav-h)] px-5 py-24 sm:px-8 sm:py-28">
+  <SectionHeading eyebrow="SEE IT WORK" titleHtml='Real drawings, <span class="text-brand">drawn in Musa CAD.</span>'>
+    <p class="mt-4 text-lg text-ink-soft">
+      Every picture here is the app itself, captured from a release build — a house plan, a
+      machined flange, a construction detail. No mock-ups.
+    </p>
+  </SectionHeading>
+
+  <ul class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+    {
+      SCREENSHOTS.map((s, i) => (
+        <li class:list={[i === 0 && 'md:col-span-2 lg:row-span-2']}>
+          <figure class="crop-frame h-full overflow-hidden rounded-2xl border border-line-strong bg-paper-2 shadow-[0_24px_60px_-40px_rgba(20,24,30,0.45)]">
+            <img
+              src={s.src}
+              srcset={`${s.srcSmall} 500w, ${s.src} 1000w`}
+              sizes={i === 0 ? '(min-width: 1024px) 800px, (min-width: 768px) 90vw, 100vw' : '(min-width: 1024px) 400px, (min-width: 768px) 45vw, 100vw'}
+              alt={s.alt}
+              width={s.width}
+              height={s.height}
+              loading="lazy"
+              decoding="async"
+              class="block h-auto w-full bg-[#1b1f24]"
+            />
+            <figcaption class="border-t border-line bg-panel px-4 py-2.5 font-mono text-xs leading-relaxed text-ink-faint">
+              {s.caption}
+            </figcaption>
+          </figure>
+        </li>
+      ))
+    }
+  </ul>
+</section>

@@ -1,0 +1,44 @@
+---
+// DRAFTING FEATURES — what a drafter actually does in Musa CAD, in the words
+// people search with: layers, blocks, dimensions, DWG, plotting. Taken from the
+// Flathub listing; the engine internals live in Features.astro ("What's inside").
+import SectionHeading from './SectionHeading.astro';
+
+const base = import.meta.env.BASE_URL;
+const groups = [
+  { title: 'Draw', body: 'Lines, polylines with widths, arcs, circles, ellipses, splines, hatches and gradients.', tag: 'LINE · PLINE · HATCH' },
+  { title: 'Modify', body: 'Move, copy, rotate, scale, stretch, trim, extend, fillet, offset and arrays — with grips.', tag: 'TRIM · OFFSET · FILLET' },
+  { title: 'Draft precisely', body: 'Object snaps, polar and object snap tracking, ortho, and dynamic input at the cursor.', tag: 'OSNAP · F8 · F12' },
+  { title: 'Annotate', body: 'Dimensions with named styles, leaders, text, tables and geometric tolerancing.', tag: 'DIMSTYLE · MTEXT' },
+  { title: 'Organize', body: 'Layers, linetypes and lineweights; blocks with attributes; external references.', tag: 'LAYER · BLOCK · XREF' },
+  { title: 'Lay out and plot', body: 'Paper space with viewports, plotted to a printer or to true vector PDF.', tag: 'PLOT · Ctrl+P' },
+  { title: 'Open your files', body: 'DXF read and write built in; DWG through the free ODA File Converter.', tag: 'DWG · DXF' },
+  { title: 'Script it', body: 'The same program runs headless to check drawings and plot them to PDF in scripts and CI.', tag: 'musacad --plot' },
+];
+---
+
+<section id="features" class="mx-auto max-w-7xl scroll-mt-[var(--nav-h)] px-5 py-24 sm:px-8 sm:py-28">
+  <SectionHeading eyebrow="FOR DRAFTERS" titleHtml='Everything you draft with, <span class="text-brand">where you expect it.</span>'>
+    <p class="mt-4 text-lg text-ink-soft">
+      Musa CAD follows AutoCAD’s ribbon, command line, prompts and shortcuts, so years of habit
+      carry straight over — for plans, sections, details and schematics.
+    </p>
+  </SectionHeading>
+
+  <ul class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {
+      groups.map((g) => (
+        <li class="flex flex-col rounded-2xl border border-line bg-paper-2 p-6">
+          <h3 class="font-display text-lg font-semibold text-ink">{g.title}</h3>
+          <p class="mt-2 text-[0.95rem] leading-relaxed text-ink-soft">{g.body}</p>
+          <p class="mt-auto pt-4 font-mono text-xs text-ink-faint">{g.tag}</p>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="mt-8 text-ink-soft">
+    Coming from AutoCAD?
+    <a href={`${base}autocad-alternative/`} class="font-medium text-ink underline decoration-accent/50 underline-offset-[3px] hover:text-accent-press">See what carries over, and what doesn’t yet</a>.
+  </p>
+</section>

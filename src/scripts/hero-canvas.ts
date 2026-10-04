@@ -45,7 +45,7 @@ export async function initHeroCanvas(
   ).matches;
 
   // Code-split: Three is only loaded here, when the hero mounts.
-  const THREE = await import('three');
+  const THREE = await import('./three-lite');
 
   // ---- Palette (sampled from design tokens) ---------------------------------
   const INK = new THREE.Color(cssColor('--ink', '#15171c'));

@@ -24,7 +24,7 @@ const callouts = [
 <section id="showcase" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
   <SectionHeading
     eyebrow="DRAWN TO SCALE"
-    titleHtml='It assembles like you<br class="hidden sm:block" /> <span class="text-accent">drew it yourself.</span>'
+    titleHtml='It assembles like you<br class="hidden sm:block"> <span class="text-brand">drew it yourself.</span>'
   >
     <p class="mt-4 text-lg text-ink-soft">
       Scroll and watch a dimensioned part take shape — outlines, holes, then
@@ -67,16 +67,7 @@ const callouts = [
         <!-- faint blueprint grid behind the SVG (local to the sheet) -->
         <div
           aria-hidden="true"
-          class="pointer-events-none absolute inset-0"
-          style="
-            background-image:
-              linear-gradient(to right, color-mix(in srgb, var(--color-grid) 55%, transparent) 1px, transparent 1px),
-              linear-gradient(to bottom, color-mix(in srgb, var(--color-grid) 55%, transparent) 1px, transparent 1px);
-            background-size: 28px 28px;
-            -webkit-mask-image: radial-gradient(120% 100% at 50% 50%, #000 60%, transparent 100%);
-            mask-image: radial-gradient(120% 100% at 50% 50%, #000 60%, transparent 100%);
-            opacity: 0.5;
-          "
+          class="grid-sheet pointer-events-none absolute inset-0"
         >
         </div>
 
@@ -86,16 +77,15 @@ const callouts = [
         <svg
           data-drawing
           viewBox="0 0 480 330"
-          class="relative block h-full w-full"
+          class="svg-nonscaling relative block h-full w-full"
           fill="none"
           role="img"
           aria-label="A dimensioned mechanical bracket: an outer outline with two bolt holes, a central bore, dimension lines, and a title block."
           stroke-linecap="round"
           stroke-linejoin="round"
-          style="vector-effect: non-scaling-stroke;"
         >
           <!-- ---- construction crosshair guides (drawn first, accent-2, faint) ---- -->
-          <g stroke="var(--color-accent-2)" stroke-width="0.75" opacity="0.5">
+          <g stroke="var(--color-accent-2-bright)" stroke-width="0.75" opacity="0.5">
             <line data-draw data-phase="guide" x1="240" y1="40" x2="240" y2="290" stroke-dasharray="4 4" />
             <line data-draw data-phase="guide" x1="70" y1="165" x2="410" y2="165" stroke-dasharray="4 4" />
           </g>
@@ -133,12 +123,12 @@ const callouts = [
           <circle
             data-draw data-phase="detail"
             cx="240" cy="170" r="34"
-            stroke="var(--color-accent)" stroke-width="2"
+            stroke="var(--color-brand)" stroke-width="2"
           />
           <circle
             data-draw data-phase="detail"
             cx="240" cy="170" r="20"
-            stroke="var(--color-accent)" stroke-width="1.25"
+            stroke="var(--color-brand)" stroke-width="1.25"
           />
 
           <!-- ---- two bolt holes ---- -->
@@ -147,37 +137,37 @@ const callouts = [
           <circle data-draw data-phase="detail" cx="360" cy="214" r="9" stroke="var(--color-ink)" stroke-width="1.5" />
 
           <!-- ---- center snap markers (○ center) on the bore ---- -->
-          <g data-draw data-phase="detail" stroke="var(--color-accent-2)" stroke-width="1.25">
+          <g data-draw data-phase="detail" stroke="var(--color-accent-2-bright)" stroke-width="1.25">
             <line x1="228" y1="170" x2="252" y2="170" />
             <line x1="240" y1="158" x2="240" y2="182" />
           </g>
 
           <!-- ================= DIMENSION LINES (accent-2) ================= -->
           <!-- horizontal overall width dim, below the part -->
-          <g data-draw data-phase="dims" stroke="var(--color-accent-2)" stroke-width="1">
+          <g data-draw data-phase="dims" stroke="var(--color-accent-2-bright)" stroke-width="1">
             <!-- extension lines -->
             <line x1="94" y1="240" x2="94" y2="276" />
             <line x1="386" y1="240" x2="386" y2="276" />
             <!-- dimension line -->
             <line x1="94" y1="270" x2="386" y2="270" />
             <!-- arrowheads -->
-            <path d="M94 270 l8 -3.5 v7 z" fill="var(--color-accent-2)" stroke="none" />
-            <path d="M386 270 l-8 -3.5 v7 z" fill="var(--color-accent-2)" stroke="none" />
+            <path d="M94 270 l8 -3.5 v7 z" fill="var(--color-accent-2-bright)" stroke="none" />
+            <path d="M386 270 l-8 -3.5 v7 z" fill="var(--color-accent-2-bright)" stroke="none" />
           </g>
 
           <!-- vertical overall height dim, right of the part -->
-          <g data-draw data-phase="dims" stroke="var(--color-accent-2)" stroke-width="1">
+          <g data-draw data-phase="dims" stroke="var(--color-accent-2-bright)" stroke-width="1">
             <line x1="386" y1="90" x2="424" y2="90" />
             <line x1="386" y1="240" x2="424" y2="240" />
             <line x1="418" y1="90" x2="418" y2="240" />
-            <path d="M418 90 l-3.5 8 h7 z" fill="var(--color-accent-2)" stroke="none" />
-            <path d="M418 240 l-3.5 -8 h7 z" fill="var(--color-accent-2)" stroke="none" />
+            <path d="M418 90 l-3.5 8 h7 z" fill="var(--color-accent-2-bright)" stroke="none" />
+            <path d="M418 240 l-3.5 -8 h7 z" fill="var(--color-accent-2-bright)" stroke="none" />
           </g>
 
           <!-- radial callout on the bore (accent) -->
-          <g data-draw data-phase="dims" stroke="var(--color-accent)" stroke-width="1">
+          <g data-draw data-phase="dims" stroke="var(--color-brand)" stroke-width="1">
             <line x1="240" y1="170" x2="274" y2="136" />
-            <path d="M274 136 l-9 1.5 l4 4 z" fill="var(--color-accent)" stroke="none" />
+            <path d="M274 136 l-9 1.5 l4 4 z" fill="var(--color-brand)" stroke="none" />
           </g>
 
           <!-- ---- dimension value text (mono, drawn with the dims phase) ---- -->

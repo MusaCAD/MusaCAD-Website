@@ -3,6 +3,8 @@ import Base from '../layouts/Base.astro';
 import Navbar from '../components/Navbar.astro';
 import Hero from '../components/Hero.astro';
 import DrawOnScroll from '../components/DrawOnScroll.astro';
+import Screenshots from '../components/Screenshots.astro';
+import Drafting from '../components/Drafting.astro';
 import Features from '../components/Features.astro';
 import Performance from '../components/Performance.astro';
 import CommandLine from '../components/CommandLine.astro';
@@ -14,9 +16,11 @@ import Footer from '../components/Footer.astro';
 
 <Base>
   <Navbar />
-  <main>
+  <main id="main" tabindex="-1" class="outline-none">
     <Hero />
     <DrawOnScroll />
+    <Screenshots />
+    <Drafting />
     <Features />
     <Performance />
     <CommandLine />

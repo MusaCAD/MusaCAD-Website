@@ -26,7 +26,7 @@ const presets = [
 <section id="command-line" class="mx-auto max-w-7xl px-5 py-24 sm:px-8 sm:py-28">
   <SectionHeading
     eyebrow="COMMAND LINE"
-    titleHtml='Type a verb, draw a <span class="text-accent">drawing.</span>'
+    titleHtml='Type a verb, draw a <span class="text-brand">drawing.</span>'
   >
     <p class="mt-4 text-lg text-ink-soft">
       An AutoCAD-style command line with table-driven aliases and absolute /
@@ -88,10 +88,10 @@ const presets = [
         <!-- scrolling command history -->
         <div
           data-term
-          class="flex-1 overflow-y-auto px-4 py-3.5 font-mono text-[0.82rem] leading-relaxed text-ink-soft"
+          class="max-h-[22rem] min-h-64 flex-1 overflow-y-auto px-4 py-3.5 font-mono text-[0.82rem] leading-relaxed text-ink-soft"
+          role="log"
           aria-live="polite"
           aria-label="Command history"
-          style="min-height: 16rem; max-height: 22rem;"
           tabindex="0"
         >
           <!-- Seed history (also the static reduced-motion / no-JS state). -->
@@ -154,6 +154,7 @@ const presets = [
           <canvas
             data-canvas
             class="cad-cursor block h-full w-full"
+            role="img"
             aria-label="Mini CAD viewport that draws the selected command"
           ></canvas>
 

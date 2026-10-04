@@ -34,6 +34,12 @@ export default defineConfig({
   // Static output — no backend required. Ready for GitHub Pages.
   output: 'static',
 
+  // Inline the stylesheet (~11 KB gzipped) into each page: one less
+  // render-blocking request makes first paint noticeably faster on phones.
+  build: {
+    inlineStylesheets: 'always',
+  },
+
   // Tailwind v4 is wired through its first-party Vite plugin.
   vite: {
     plugins: [tailwindcss()],

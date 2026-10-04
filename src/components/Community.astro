@@ -21,15 +21,7 @@ const { stars, catalog } = await getSnapshot();
     <!-- faint blueprint grid detail (decorative) -->
     <div
       aria-hidden="true"
-      class="pointer-events-none absolute inset-0 opacity-[0.14]"
-      style="
-        background-image:
-          linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
-          linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
-        background-size: 48px 48px;
-        mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
-        -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 78%);
-      "
+      class="grid-glow pointer-events-none absolute inset-0 opacity-[0.14]"
     >
     </div>
 
@@ -56,7 +48,7 @@ const { stars, catalog } = await getSnapshot();
         class="mt-4 font-display text-4xl font-semibold sm:text-5xl"
       >
         Built in the open,
-        <span class="text-accent">clone-and-build clean.</span>
+        <span class="text-brand">clone-and-build clean.</span>
       </h2>
 
       <!-- intro copy -->
@@ -141,7 +133,7 @@ const { stars, catalog } = await getSnapshot();
         </a>
 
         <!-- Donate (prominent accent CTA → the donation page) -->
-        <a href={`${import.meta.env.BASE_URL}donate`} class="btn btn-accent px-5 py-3 text-[0.97rem]">
+        <a href={`${import.meta.env.BASE_URL}donate/`} class="btn btn-accent px-5 py-3 text-[0.97rem]">
           <!-- heart glyph -->
           <svg
             viewBox="0 0 24 24"
@@ -162,7 +154,7 @@ const { stars, catalog } = await getSnapshot();
         data-c-reveal
         class="mt-7 font-mono text-[0.72rem] tracking-wide text-grid/70"
       >
-        GNU LGPL-3.0-or-later · Linux + Windows · DXF read/write built in
+        GNU LGPL-3.0-or-later · Windows · Linux · macOS preview · DWG and DXF
       </p>
     </div>
   </div>
