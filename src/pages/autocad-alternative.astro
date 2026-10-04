@@ -1,0 +1,219 @@
+---
+// AUTOCAD ALTERNATIVE — for drafters arriving from AutoCAD: what carries over,
+// an honest side-by-side, what isn't there yet, and how to switch. Every claim
+// about Musa CAD is checked against the engine repo; claims about AutoCAD stick
+// to what Autodesk publishes.
+import Page from '../layouts/Page.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { SCREENSHOTS } from '../data/screenshots';
+import { AUTOCAD_CONFIG_URL, COMMANDS_URL, ROADMAP_URL } from '../data/site';
+
+const title = 'Free AutoCAD Alternative for 2D Drafting — Musa CAD';
+const description =
+  "Musa CAD is a free, open-source AutoCAD alternative with AutoCAD's commands, ribbon, prompts and shortcuts, plus DWG and DXF, on Windows and Linux.";
+const crumbs = [{ name: 'AutoCAD alternative', path: '/autocad-alternative/' }];
+const base = import.meta.env.BASE_URL;
+
+const carryOver = [
+  {
+    title: 'The command line',
+    body: 'Type LINE or L, CIRCLE or C, PLINE or PL, TRIM or TR, OFFSET or O, FILLET or F. Enter repeats the last command and Esc cancels, with absolute, @dx,dy and @dist<angle input.',
+    tag: 'L · C · PL · TR · O · F',
+  },
+  {
+    title: 'The prompts, option for option',
+    body: '“Specify next point or [Close/Undo]:” reads the way you expect, with the same keywords. Every edit command starts at Select objects, with windows, crossings and lassos.',
+    tag: 'Select objects:',
+  },
+  {
+    title: 'The ribbon',
+    body: 'Home, Insert, Annotate, Parametric, View, Manage and Output — laid out as AutoCAD lays them out, so the button you reach for is where your hand goes.',
+    tag: 'Home · Annotate · Output',
+  },
+  {
+    title: 'The function keys',
+    body: 'F3 object snap, F7 grid, F8 ortho, F9 snap, F10 polar, F11 object snap tracking, F12 dynamic input. Ctrl+Z and Ctrl+Y for undo and redo.',
+    tag: 'F3 · F8 · F10 · F12',
+  },
+  {
+    title: 'Object snaps and tracking',
+    body: 'Endpoint, midpoint, center, intersection, extension, nearest and the rest — running or typed for one pick — plus FROM, M2P, TT and TK, polar and object snap tracking.',
+    tag: 'END · MID · CEN · INT',
+  },
+  {
+    title: 'Drawings that look like drawings',
+    body: 'Layers, linetypes and lineweights; blocks with attributes and external references; dimensions with named styles; text, tables, leaders and geometric tolerances.',
+    tag: 'LAYER · BLOCK · DIMSTYLE',
+  },
+  {
+    title: 'Layouts and plotting',
+    body: 'Paper space with viewports, and PLOT to a printer or to true vector PDF — from the app, or headless from the command line in a script.',
+    tag: 'PLOT · Ctrl+P',
+  },
+  {
+    title: 'Your files',
+    body: 'DXF is read and written natively. DWG opens and saves through the free ODA File Converter, which Musa CAD downloads for you in one click from DWG Setup.',
+    tag: 'DWG · DXF',
+  },
+];
+
+// The side-by-side. AutoCAD's column sticks to what Autodesk states publicly.
+const rows: [string, string, string][] = [
+  ['Price', 'Free', 'Paid subscription'],
+  ['License', 'Open source (LGPL-3.0-or-later)', 'Proprietary'],
+  ['Account needed to use it', 'No', 'Yes, an Autodesk account'],
+  ['Windows', 'Yes', 'Yes'],
+  ['Linux', 'Yes — AppImage and Flathub', 'No'],
+  ['macOS', 'Preview (command line only so far)', 'Yes'],
+  ['Command line, aliases and prompts', 'Yes, AutoCAD-style', 'Yes'],
+  ['DXF', 'Read and write', 'Read and write'],
+  ['DWG', 'Through the free ODA File Converter', 'Native'],
+  ['2D drafting and annotation', 'Yes', 'Yes'],
+  ['3D modeling', 'No', 'Yes'],
+  ['AutoLISP and plug-ins', 'No', 'Yes'],
+  ['Source code', 'Public on GitHub', 'Closed'],
+];
+
+const notYet = [
+  ['3D', 'Musa CAD is for 2D drafting. If your work is 3D modeling, it isn’t the tool for that.'],
+  ['AutoLISP, VBA and plug-ins', 'There is no AutoLISP or plug-in API. The headless command line can check and plot drawings in scripts and CI.'],
+  ['Every last option', 'Most draw, modify and annotate commands follow AutoCAD option for option; some settings are still on the list. The roadmap and the AutoCAD settings catalog say exactly which.'],
+  ['DWG without a converter', 'DWG needs the free ODA File Converter (or LibreDWG). It runs as a separate program, which keeps Musa CAD free of closed code.'],
+  ['The drawing window on macOS', 'The macOS build is a preview: the command line works, and the drawing window waits on a Metal renderer.'],
+];
+
+const shot = SCREENSHOTS[1]; // command entry at the cursor
+---
+
+<Page {title} {description} {crumbs}>
+  <PageHeader eyebrow="For AutoCAD users" title="A free AutoCAD alternative for 2D drafting" {crumbs} wide>
+    <p>
+      I built Musa CAD for people who draft in AutoCAD every day and don’t want to relearn their
+      hands — or pay a subscription — to draw in 2D. The commands, ribbon, prompts and shortcuts are
+      where you expect them. It’s free, it’s open source, and it runs on Windows and Linux.
+    </p>
+  </PageHeader>
+
+  <div class="mx-auto max-w-7xl px-5 sm:px-8">
+    <div class="flex flex-wrap gap-3">
+      <a href={`${base}download/`} class="btn btn-accent px-5 py-3 text-[0.97rem]">Download Musa CAD — free</a>
+      <a href="#compare" class="btn btn-ghost px-5 py-3 text-[0.97rem]">See the comparison</a>
+    </div>
+    <figure class="crop-frame mx-auto mt-12 max-w-[1000px] overflow-hidden rounded-2xl border border-line-strong bg-paper-2 shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]">
+      <picture>
+        <source type="image/webp" srcset={`${shot.srcSmall} 500w, ${shot.src} 1000w`} sizes="(min-width: 1048px) 1000px, 100vw" />
+        <img src={shot.src} alt={shot.alt} width={shot.width} height={shot.height} class="block h-auto w-full" fetchpriority="high" />
+      </picture>
+      <figcaption class="border-t border-line bg-panel px-4 py-2.5 font-mono text-xs text-ink-faint">{shot.caption}</figcaption>
+    </figure>
+  </div>
+
+  <!-- ============================ carries over ============================ -->
+  <section aria-labelledby="carries-over" class="mx-auto max-w-7xl px-5 pt-24 sm:px-8">
+    <h2 id="carries-over" class="max-w-3xl text-3xl font-semibold sm:text-4xl">
+      What carries over from AutoCAD
+    </h2>
+    <p class="mt-3 max-w-2xl text-lg text-ink-soft">
+      The point is that you shouldn’t have to think about it. These work the way your fingers
+      already know.
+    </p>
+    <ul class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {
+        carryOver.map((c) => (
+          <li class="flex flex-col rounded-2xl border border-line bg-paper-2 p-6">
+            <h3 class="font-display text-lg font-semibold text-ink">{c.title}</h3>
+            <p class="mt-2 text-[0.95rem] leading-relaxed text-ink-soft">{c.body}</p>
+            <p class="mt-auto pt-4 font-mono text-xs text-ink-faint">{c.tag}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-6 text-ink-soft">
+      Every command, its alias and its options:
+      <a href={COMMANDS_URL} target="_blank" rel="noopener" class="font-medium text-ink underline decoration-accent/50 underline-offset-[3px] hover:text-accent-press">the commands reference</a>.
+    </p>
+  </section>
+
+  <!-- ============================ side by side ============================ -->
+  <section id="compare" aria-labelledby="compare-title" class="mx-auto max-w-7xl scroll-mt-[calc(var(--nav-h)+1.5rem)] px-5 pt-24 sm:px-8">
+    <h2 id="compare-title" class="text-3xl font-semibold sm:text-4xl">Musa CAD and AutoCAD, side by side</h2>
+    <p class="mt-3 max-w-2xl text-lg text-ink-soft">
+      AutoCAD is a mature product with decades behind it, and it does far more than 2D drafting.
+      Here’s an honest look at where the two meet and where they don’t.
+    </p>
+    <div class="prose-doc mt-8 overflow-x-auto rounded-2xl border border-line bg-paper-2 px-5 py-2">
+      <table>
+        <caption class="sr-only">Musa CAD compared with AutoCAD</caption>
+        <thead>
+          <tr><th scope="col"></th><th scope="col">Musa CAD</th><th scope="col">AutoCAD</th></tr>
+        </thead>
+        <tbody>
+          {
+            rows.map(([what, musa, acad]) => (
+              <tr>
+                <th scope="row" class="!font-sans !text-[0.95rem] !normal-case !tracking-normal !text-ink">{what}</th>
+                <td class="text-ink">{musa}</td>
+                <td>{acad}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-4 text-sm text-ink-faint">
+      AutoCAD details are as Autodesk publishes them; check autodesk.com for current plans and
+      platforms.
+    </p>
+  </section>
+
+  <!-- ============================ not yet ============================ -->
+  <section aria-labelledby="not-yet" class="mx-auto max-w-7xl px-5 pt-24 sm:px-8">
+    <h2 id="not-yet" class="text-3xl font-semibold sm:text-4xl">What isn’t there yet</h2>
+    <p class="mt-3 max-w-2xl text-lg text-ink-soft">
+      Better you hear it from me before you switch than find it on a deadline.
+    </p>
+    <dl class="mt-8 grid gap-4 md:grid-cols-2">
+      {
+        notYet.map(([term, detail]) => (
+          <div class="rounded-2xl border border-line bg-panel/60 p-6">
+            <dt class="font-display text-lg font-semibold text-ink">{term}</dt>
+            <dd class="mt-2 text-[0.95rem] leading-relaxed text-ink-soft">{detail}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class="mt-6 text-ink-soft">
+      What’s next, in order:
+      <a href={ROADMAP_URL} target="_blank" rel="noopener" class="font-medium text-ink underline decoration-accent/50 underline-offset-[3px] hover:text-accent-press">the roadmap</a>, and every AutoCAD setting with its status in
+      <a href={AUTOCAD_CONFIG_URL} target="_blank" rel="noopener" class="font-medium text-ink underline decoration-accent/50 underline-offset-[3px] hover:text-accent-press">the settings catalog</a>.
+    </p>
+  </section>
+
+  <!-- ============================ switching ============================ -->
+  <section aria-labelledby="switch" class="mx-auto max-w-7xl px-5 pb-28 pt-24 sm:px-8">
+    <div class="crop-frame rounded-3xl border border-line-strong bg-paper-2 p-8 sm:p-12">
+      <h2 id="switch" class="text-3xl font-semibold sm:text-4xl">Switching takes three steps</h2>
+      <ol class="mt-8 grid gap-6 md:grid-cols-3">
+        <li>
+          <p class="font-mono text-xs text-accent">01</p>
+          <h3 class="mt-2 font-display text-lg font-semibold text-ink">Install Musa CAD</h3>
+          <p class="mt-1.5 text-ink-soft">The Windows installer, Flathub or the AppImage on Linux. No account.</p>
+        </li>
+        <li>
+          <p class="font-mono text-xs text-accent">02</p>
+          <h3 class="mt-2 font-display text-lg font-semibold text-ink">Open your drawings</h3>
+          <p class="mt-1.5 text-ink-soft">DXF opens as it is. For DWG, DWG Setup fetches the free ODA File Converter in one click.</p>
+        </li>
+        <li>
+          <p class="font-mono text-xs text-accent">03</p>
+          <h3 class="mt-2 font-display text-lg font-semibold text-ink">Draw the way you do</h3>
+          <p class="mt-1.5 text-ink-soft">Type the commands you know. Where something differs, the FAQ and the commands reference cover it.</p>
+        </li>
+      </ol>
+      <div class="mt-10 flex flex-wrap gap-3">
+        <a href={`${base}download/`} class="btn btn-accent px-5 py-3 text-[0.97rem]">Download Musa CAD</a>
+        <a href={`${base}faq/`} class="btn btn-ghost px-5 py-3 text-[0.97rem]">Read the FAQ</a>
+      </div>
+    </div>
+  </section>
+</Page>

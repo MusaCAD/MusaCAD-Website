@@ -1,0 +1,111 @@
+---
+// ABOUT — who makes Musa CAD, what it stands for, how it's built, how to get in
+// touch, and how to report a security problem (security.txt points here).
+import Page from '../layouts/Page.astro';
+import PageHeader from '../components/PageHeader.astro';
+import {
+  ARCHITECTURE_URL,
+  CONTACT_EMAIL,
+  FLATHUB_URL,
+  ISSUES_URL,
+  LICENSE_URL,
+  MAINTAINER,
+  MAINTAINER_URL,
+  REPO_URL,
+} from '../data/site';
+
+const title = 'About Musa CAD — Who Makes It and How to Get in Touch';
+const description =
+  'Musa CAD is a free, open-source 2D CAD application written by Pranay Kiran and built in the open on GitHub. Its principles, how it is made, and how to reach me.';
+const crumbs = [{ name: 'About', path: '/about/' }];
+const base = import.meta.env.BASE_URL;
+const THIRD_PARTY_URL = `${REPO_URL}/blob/main/docs/THIRD_PARTY_LICENSES.md`;
+const CONTRIBUTORS_URL = `${REPO_URL}/blob/main/CONTRIBUTORS.md`;
+
+const principles = [
+  ['Free, for everyone', 'No price, no subscription, no account and no license key. Free software under the LGPL.'],
+  ['Your habits, not mine', "AutoCAD's ribbon, command line, prompts and shortcuts, so years of muscle memory still count."],
+  ['Your drawings stay yours', 'No telemetry, no analytics, no cloud. Drawings never leave your computer.'],
+  ['Fast because it should be', 'Multi-threaded and GPU-accelerated, so a large drawing pans, zooms and edits without a stutter.'],
+];
+---
+
+<Page {title} {description} {crumbs} type="AboutPage">
+  <PageHeader eyebrow="About" title="About Musa CAD" {crumbs}>
+    <p>
+      I’m <a href={MAINTAINER_URL} target="_blank" rel="noopener" class="font-medium text-ink underline decoration-accent/50 underline-offset-[3px] hover:text-accent-press">{MAINTAINER}</a>,
+      and I write and maintain Musa CAD: a free, open-source 2D CAD application that works the way
+      AutoCAD does, on a core built to stay fast with large drawings. It’s made in the open on
+      GitHub, where anyone can read it, build it and make it better.
+    </p>
+  </PageHeader>
+
+  <div class="mx-auto max-w-3xl px-5 pb-28 sm:px-8">
+    <section aria-labelledby="principles">
+      <h2 id="principles" class="text-2xl font-semibold sm:text-3xl">What Musa CAD stands for</h2>
+      <dl class="mt-6 grid gap-4 sm:grid-cols-2">
+        {
+          principles.map(([term, detail]) => (
+            <div class="rounded-2xl border border-line bg-paper-2 p-5">
+              <dt class="font-display text-lg font-semibold text-ink">{term}</dt>
+              <dd class="mt-1.5 text-[0.95rem] leading-relaxed text-ink-soft">{detail}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <div class="prose-doc mt-4">
+      <h2 id="how">How it’s made</h2>
+      <p>
+        Musa CAD is written in modern C++23 on Qt 6. Drawing runs on three threads — one for the
+        interface and commands, one for geometry, one for rendering — that share no mutable state,
+        so editing never stalls the view. Geometry lives in its own 2D kernel, with no third-party
+        CAD library underneath, and the viewport draws a million primitives in a handful of GPU
+        draw calls. <a href={ARCHITECTURE_URL} target="_blank" rel="noopener">The architecture notes</a>
+        go deeper.
+      </p>
+      <p>
+        The code is released under the
+        <a href={LICENSE_URL} target="_blank" rel="noopener">GNU LGPL-3.0-or-later</a>. It builds on
+        open-source work by many others, credited in
+        <a href={THIRD_PARTY_URL} target="_blank" rel="noopener">the third-party licenses</a>, and
+        <a href={CONTRIBUTORS_URL} target="_blank" rel="noopener">the contributors list</a> names
+        everyone who has helped.
+      </p>
+
+      <h2 id="contact">Get in touch</h2>
+      <ul>
+        <li>
+          <strong>Bugs and feature requests:</strong>
+          <a href={ISSUES_URL} target="_blank" rel="noopener">the issue tracker on GitHub</a>, so
+          others can find the answer too.
+        </li>
+        <li>
+          <strong>Everything else</strong> — questions, press, partnerships, privacy:
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+        </li>
+        <li>
+          <strong>Elsewhere:</strong>
+          <a href={REPO_URL} target="_blank" rel="noopener">GitHub</a> and
+          <a href={FLATHUB_URL} target="_blank" rel="noopener">Flathub</a>.
+        </li>
+      </ul>
+
+      <h2 id="security">Reporting a security problem</h2>
+      <p>
+        If you find a security problem in Musa CAD or on this website, please email me at
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> rather than opening a public issue,
+        with enough detail to reproduce it. I’ll reply, keep you in the loop until it’s fixed, and
+        credit you in the release notes if you’d like.
+      </p>
+
+      <h2 id="support">Supporting the work</h2>
+      <p>
+        Musa CAD is funded by the people who use it. If it saves you a subscription,
+        <a href={`${base}donate/`}>a donation</a> buys development time — and starring the
+        repository, reporting bugs and telling a colleague help just as much.
+      </p>
+    </div>
+  </div>
+</Page>

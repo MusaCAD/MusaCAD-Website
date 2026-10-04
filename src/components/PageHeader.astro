@@ -1,0 +1,75 @@
+---
+// The top of a content page: a visible breadcrumb, an eyebrow, the page's one
+// <h1>, and a lede. `updated` adds a "Last updated" line (legal pages).
+import type { Crumb } from '../data/seo';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  crumbs?: Crumb[];
+  updated?: string; // ISO date
+  wide?: boolean;
+}
+const { eyebrow, title, crumbs = [], updated, wide = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const href = (path: string) => `${base}${path.replace(/^\//, '')}`;
+const updatedLabel = updated
+  ? new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    })
+  : null;
+---
+
+<header
+  class:list={[
+    'mx-auto px-5 pb-10 pt-[calc(var(--nav-h)+2.5rem)] sm:px-8 sm:pt-[calc(var(--nav-h)+3.5rem)]',
+    wide ? 'max-w-7xl' : 'max-w-3xl',
+  ]}
+>
+  {
+    crumbs.length > 0 && (
+      <nav aria-label="Breadcrumb" class="mb-8">
+        <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-ink-faint">
+          <li>
+            <a href={base} class="underline-offset-[3px] transition-colors hover:text-ink hover:underline">
+              Home
+            </a>
+          </li>
+          {crumbs.map((c, i) => (
+            <li class="flex items-center gap-2">
+              <span aria-hidden="true">/</span>
+              {i === crumbs.length - 1 ? (
+                <span aria-current="page" class="text-ink-soft">
+                  {c.name}
+                </span>
+              ) : (
+                <a href={href(c.path)} class="underline-offset-[3px] transition-colors hover:text-ink hover:underline">
+                  {c.name}
+                </a>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )
+  }
+
+  <div class="flex items-center gap-2.5">
+    <span class="h-1.5 w-1.5 rotate-45 bg-accent" aria-hidden="true"></span>
+    <p class="font-mono text-xs uppercase tracking-[0.22em] text-ink-faint">{eyebrow}</p>
+  </div>
+  <h1 class="mt-4 text-4xl font-semibold sm:text-5xl lg:text-[3.4rem]">{title}</h1>
+  <div class="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+    <slot />
+  </div>
+  {
+    updatedLabel && (
+      <p class="mt-6 font-mono text-xs text-ink-faint">
+        Last updated <time datetime={updated}>{updatedLabel}</time>
+      </p>
+    )
+  }
+</header>

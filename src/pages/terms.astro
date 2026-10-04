@@ -1,0 +1,122 @@
+---
+// TERMS OF USE — for musacad.org. The application itself is governed by its
+// license (LGPL-3.0-or-later), which these terms point to and never narrow.
+import Page from '../layouts/Page.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { CONTACT_EMAIL, FLATHUB_URL, LICENSE_URL, MAINTAINER, REPO_URL } from '../data/site';
+
+const title = 'Terms of Use — Musa CAD Website, License and Downloads';
+const description =
+  'The terms for using musacad.org and downloading Musa CAD: the LGPL license, no warranty, official download sources, trademarks, donations and third-party tools.';
+const crumbs = [{ name: 'Terms of use', path: '/terms/' }];
+const UPDATED = '2026-10-04';
+const base = import.meta.env.BASE_URL;
+const mail = `mailto:${CONTACT_EMAIL}`;
+---
+
+<Page {title} {description} {crumbs}>
+  <PageHeader eyebrow="Terms" title="Terms of use" {crumbs} updated={UPDATED}>
+    <p>
+      These terms cover this website, musacad.org. The Musa CAD application is covered by its
+      own license, the GNU LGPL — nothing here takes away any right that license gives you.
+    </p>
+  </PageHeader>
+
+  <article class="prose-doc mx-auto max-w-3xl px-5 pb-28 sm:px-8">
+    <h2 id="about-these-terms">About these terms</h2>
+    <p>
+      musacad.org is run by me, {MAINTAINER}. By using the site you agree to these terms. If you
+      don’t agree, please don’t use it — you can still get Musa CAD and its source code from
+      <a href={REPO_URL} target="_blank" rel="noopener">GitHub</a>.
+    </p>
+
+    <h2 id="license">The software and its license</h2>
+    <p>
+      Musa CAD is free software, released under the
+      <a href={LICENSE_URL} target="_blank" rel="noopener">GNU Lesser General Public License, version 3 or later</a>.
+      You may use it for any purpose, including commercial work, and you may study, change and
+      share it under that license’s terms. The license, not this page, decides what you may do
+      with the program; where the two ever seem to differ, the license wins.
+    </p>
+    <p>
+      What you draw with Musa CAD is yours. The license covers the program, not your drawings.
+    </p>
+
+    <h2 id="no-warranty">No warranty</h2>
+    <p>
+      Musa CAD is provided <strong>as is, without warranty of any kind</strong>, as its license
+      sets out. To the extent the law allows, I’m not liable for any loss or damage that comes
+      from using it or this website — including lost or corrupted drawings, wrong dimensions,
+      or costs that follow from them.
+    </p>
+    <p>
+      CAD drawings often end up as buildings, parts and machines. Check your work, especially
+      dimensions and anything converted from another format, before anyone builds from it, and
+      keep backups of drawings that matter.
+    </p>
+
+    <h2 id="downloads">Official downloads</h2>
+    <p>Official builds of Musa CAD come from three places only:</p>
+    <ul>
+      <li>this website,</li>
+      <li>the releases of <a href={`${REPO_URL}/releases`} target="_blank" rel="noopener">MusaCAD/MusaCAD on GitHub</a>, and</li>
+      <li><a href={FLATHUB_URL} target="_blank" rel="noopener">Flathub</a>, as <code>org.musacad.MusaCAD</code>.</li>
+    </ul>
+    <p>
+      Anyone may build and share Musa CAD under its license, but builds from anywhere else
+      aren’t mine and I can’t vouch for them. Where a release publishes a SHA-256 checksum, use
+      it to check your download.
+    </p>
+
+    <h2 id="third-party">Third-party software and services</h2>
+    <p>
+      Opening and saving DWG uses the ODA File Converter, a separate program by the Open Design
+      Alliance, under its own license — you accept the Open Design Alliance’s terms when you
+      download it. GitHub, Flathub, PayPal and Ko-fi are run by others under their own terms.
+      AutoCAD is a registered trademark of Autodesk, Inc.; Musa CAD is an independent project
+      and is not affiliated with, endorsed by or sponsored by Autodesk.
+    </p>
+
+    <h2 id="trademarks">The Musa CAD name and logo</h2>
+    <p>
+      The Musa CAD name and logo identify this project. You’re welcome to use them to talk about
+      Musa CAD — in reviews, articles, tutorials and courses. Please don’t use them in a way that
+      suggests your own product, service or modified build is Musa CAD or is endorsed by it.
+    </p>
+
+    <h2 id="donations">Donations</h2>
+    <p>
+      <a href={`${base}donate/`}>Donations</a> are voluntary gifts toward development. They don’t
+      buy goods, services, support or influence over the project, and they’re processed by the
+      payment service you choose, under its terms. If you sent one by mistake, write to me at
+      <a href={mail}>{CONTACT_EMAIL}</a>.
+    </p>
+
+    <h2 id="website">Using this website</h2>
+    <p>
+      Please don’t try to disrupt the site, its hosting, or anyone else’s use of it. Information
+      here is offered in good faith and kept as accurate as I can, but it may be incomplete or
+      out of date — the release notes and the documentation in the repository are the reference.
+      The source of this website is public on
+      <a href="https://github.com/MusaCAD/MusaCAD-Website" target="_blank" rel="noopener">GitHub</a>.
+    </p>
+
+    <h2 id="links">Links to other sites</h2>
+    <p>
+      This site links to services I don’t run. I’m not responsible for their content, their
+      availability or their practices.
+    </p>
+
+    <h2 id="changes">Changes to these terms</h2>
+    <p>
+      If these terms change, this page changes with them and the date at the top moves. Every past
+      version is in this website’s
+      <a href="https://github.com/MusaCAD/MusaCAD-Website/commits/main/src/pages/terms.astro" target="_blank" rel="noopener">public history</a>.
+    </p>
+
+    <h2 id="contact">Contact</h2>
+    <p>
+      Questions about these terms: <a href={mail}>{CONTACT_EMAIL}</a>.
+    </p>
+  </article>
+</Page>

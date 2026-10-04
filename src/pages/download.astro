@@ -1,0 +1,215 @@
+---
+// DOWNLOAD — every build for every platform, the Flathub route, what each
+// machine needs, how to check a download, and how to build it yourself. The CTA
+// at the top picks the visitor's own platform; the cards below show them all.
+import Page from '../layouts/Page.astro';
+import PageHeader from '../components/PageHeader.astro';
+import DownloadCTA from '../components/DownloadCTA.astro';
+import FlatpakPanel from '../components/FlatpakPanel.astro';
+import { getSnapshot } from '../data/github';
+import { isFlathubVerified } from '../data/flathub';
+import {
+  BUILD_URL,
+  CHANGELOG_URL,
+  CLI_URL,
+  RELEASES_URL,
+  ROADMAP_URL,
+  formatBytes,
+  type OS,
+  type ReleaseAsset,
+} from '../data/site';
+
+const { catalog } = await getSnapshot();
+const verified = await isFlathubVerified();
+const version = catalog.latest;
+const releasedOn = catalog.published
+  ? new Date(catalog.published).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  : null;
+const assetsFor = (os: OS) => catalog.assets.filter((a) => a.os === os);
+const sizeOf = (os: OS) => {
+  const a = assetsFor(os)[0];
+  return a ? formatBytes(a.size) : '—';
+};
+
+const title = 'Download Musa CAD — Free 2D CAD for Windows and Linux';
+const description = `Download Musa CAD ${version} for free: the Windows installer, a Linux AppImage or Flathub, and a macOS preview. No account and no license key.`;
+const crumbs = [{ name: 'Download', path: '/download/' }];
+
+const cards: {
+  os: OS;
+  name: string;
+  badge?: string;
+  summary: string;
+  notes: string[];
+}[] = [
+  {
+    os: 'windows',
+    name: 'Windows',
+    summary: 'Windows 10 and 11, 64-bit.',
+    notes: [
+      'Run the installer and Musa CAD lands in the Start menu. Running a newer installer over an existing installation updates it where it is.',
+      'From v0.6.0 on, the Update window downloads, checks and installs new versions for you.',
+    ],
+  },
+  {
+    os: 'linux',
+    name: 'Linux',
+    summary: 'Any recent 64-bit distribution.',
+    notes: [
+      'Flathub is the easiest route: updates arrive with the rest of your apps.',
+      'Or take the AppImage — one file, nothing to install: make it executable (chmod +x) and run it.',
+    ],
+  },
+  {
+    os: 'macos',
+    name: 'macOS',
+    badge: 'Preview',
+    summary: 'Apple silicon, macOS 12 Monterey or later.',
+    notes: [
+      "This is a preview. Musa CAD draws with OpenGL 4.5 and macOS stops at 4.1, so the drawing window can't open yet — the app tells you so when it starts. A Metal renderer is on the roadmap.",
+      'The command-line tools already work: open and check drawings, and plot them to PDF.',
+    ],
+  },
+];
+
+const label = (a: ReleaseAsset) =>
+  a.os === 'windows' ? 'Installer (.exe)' : a.os === 'macos' ? 'Disk image (.dmg)' : a.kind === 'Flatpak' ? 'Flatpak bundle (offline)' : a.kind;
+---
+
+<Page {title} {description} {crumbs}>
+  <PageHeader eyebrow="Download" title="Download Musa CAD" {crumbs} wide>
+    <p>
+      Free for Windows and Linux, with a macOS preview. No account, no license key, no
+      trial — {version}{releasedOn && <> was released on {releasedOn}</>}.
+    </p>
+  </PageHeader>
+
+  <div class="mx-auto max-w-7xl px-5 sm:px-8">
+    <DownloadCTA flatpak={false}>
+      <a href={catalog.latestUrl} target="_blank" rel="noopener" class="btn btn-ghost px-5 py-3 text-[0.97rem]">
+        Release notes
+      </a>
+    </DownloadCTA>
+  </div>
+
+  <!-- ============================ every platform ============================ -->
+  <section aria-labelledby="platforms" class="mx-auto max-w-7xl px-5 pt-20 sm:px-8">
+    <h2 id="platforms" class="text-3xl font-semibold sm:text-4xl">Every platform</h2>
+    <div class="mt-8 grid gap-5 lg:grid-cols-3">
+      {
+        cards.map((card) => (
+          <article
+            id={card.os}
+            class="flex flex-col rounded-2xl border border-line bg-paper-2 p-6 scroll-mt-[calc(var(--nav-h)+1.5rem)]"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="font-display text-2xl font-semibold text-ink">{card.name}</h3>
+              {card.badge && <span class="cad-chip">{card.badge}</span>}
+            </div>
+            <p class="mt-1.5 text-ink-soft">{card.summary}</p>
+
+            <ul class="mt-5 space-y-2.5">
+              {assetsFor(card.os).map((a) => (
+                <li class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-xl border border-line-strong bg-paper px-4 py-3">
+                  <a href={a.url} class="font-medium text-ink underline decoration-accent/50 underline-offset-[3px] hover:text-accent-press">
+                    {label(a)}
+                  </a>
+                  <span class="font-mono text-xs text-ink-faint">
+                    {a.tag} · {formatBytes(a.size)}
+                    {a.checksumUrl && (
+                      <>
+                        {' · '}
+                        <a href={a.checksumUrl} class="underline underline-offset-[3px] hover:text-ink">SHA-256</a>
+                      </>
+                    )}
+                  </span>
+                </li>
+              ))}
+              {assetsFor(card.os).length === 0 && (
+                <li class="rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm text-ink-soft">
+                  No build in the last few releases —{' '}
+                  <a href={RELEASES_URL} class="underline underline-offset-[3px]">see all releases</a>.
+                </li>
+              )}
+            </ul>
+
+            {card.os === 'linux' && <FlatpakPanel class="mt-4 w-full" {verified} />}
+
+            <ul class="mt-5 space-y-2 text-[0.95rem] leading-relaxed text-ink-soft">
+              {card.notes.map((n) => (
+                <li class="flex gap-2.5">
+                  <span class="mt-2.5 h-1.5 w-1.5 shrink-0 rotate-45 bg-accent-2" aria-hidden="true" />
+                  <span>{n}</span>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- ============================ requirements ============================ -->
+  <section aria-labelledby="requirements" class="mx-auto max-w-7xl px-5 pt-24 sm:px-8">
+    <h2 id="requirements" class="text-3xl font-semibold sm:text-4xl">System requirements</h2>
+    <p class="mt-3 max-w-2xl text-lg text-ink-soft">
+      Musa CAD draws on the GPU, so the one thing every machine needs is a graphics driver with
+      OpenGL 4.5 — which covers most graphics hardware from the last ten years.
+    </p>
+    <div class="prose-doc mt-8 overflow-x-auto">
+      <table>
+        <caption class="sr-only">System requirements by platform</caption>
+        <thead>
+          <tr><th scope="col"></th><th scope="col">Windows</th><th scope="col">Linux</th><th scope="col">macOS (preview)</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">System</th><td>Windows 10 or 11</td><td>A recent 64-bit distribution</td><td>macOS 12 Monterey or later</td></tr>
+          <tr><th scope="row">Processor</th><td>64-bit x86 (x86_64)</td><td>64-bit x86 (x86_64)</td><td>Apple silicon (M1 or newer)</td></tr>
+          <tr><th scope="row">Graphics</th><td>OpenGL 4.5 driver</td><td>OpenGL 4.5 (Mesa or the vendor driver)</td><td>Not yet — the drawing window waits on the Metal renderer</td></tr>
+          <tr><th scope="row">Download</th><td>{sizeOf('windows')}</td><td>{sizeOf('linux')} (AppImage)</td><td>{sizeOf('macos')}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================ verify / build / older ============================ -->
+  <section aria-labelledby="more" class="mx-auto max-w-7xl px-5 pb-28 pt-24 sm:px-8">
+    <h2 id="more" class="sr-only">More ways to get Musa CAD</h2>
+    <div class="grid gap-5 md:grid-cols-3">
+      <div class="rounded-2xl border border-line bg-panel/60 p-6">
+        <h3 class="font-display text-xl font-semibold text-ink">Check your download</h3>
+        <div class="prose-doc mt-3 text-[0.95rem]">
+          <p>
+            Where a release publishes a <code>.sha256</code> beside a file, compare it with the
+            file you downloaded:
+          </p>
+          <p><code>sha256sum MusaCAD-*-setup.exe</code></p>
+          <p>
+            On Windows, <code>Get-FileHash</code> in PowerShell does the same. The Update window
+            checks it for you.
+          </p>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-line bg-panel/60 p-6">
+        <h3 class="font-display text-xl font-semibold text-ink">Build it yourself</h3>
+        <div class="prose-doc mt-3 text-[0.95rem]">
+          <p>Musa CAD is clone-and-build: a C++23 compiler, CMake, Ninja, Qt 6 and the Vulkan headers.</p>
+          <p><code>cmake --preset release</code><br /><code>cmake --build --preset release</code></p>
+          <p><a href={BUILD_URL} target="_blank" rel="noopener">The full build guide</a></p>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-line bg-panel/60 p-6">
+        <h3 class="font-display text-xl font-semibold text-ink">Older versions and what changed</h3>
+        <div class="prose-doc mt-3 text-[0.95rem]">
+          <p>Every release, with its notes and files, stays on GitHub.</p>
+          <ul>
+            <li><a href={RELEASES_URL} target="_blank" rel="noopener">All releases</a></li>
+            <li><a href={CHANGELOG_URL} target="_blank" rel="noopener">Changelog</a></li>
+            <li><a href={ROADMAP_URL} target="_blank" rel="noopener">Roadmap</a></li>
+            <li><a href={CLI_URL} target="_blank" rel="noopener">Command-line tools</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</Page>

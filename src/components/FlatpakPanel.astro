@@ -1,0 +1,197 @@
+---
+/**
+ * The Flathub install panel: the two commands with a copy button each. Each
+ * step's number ticks once its command is copied and stays ticked, so the
+ * install reads as progress, and copies are announced to screen readers. On
+ * narrow screens commands wrap at spaces under a hanging "$" rather than
+ * scrolling sideways.
+ *
+ * `verified` adds "Verified on Flathub" — pass the build-time status from
+ * data/flathub.ts rather than asserting it. Other attributes (e.g. the
+ * `data-flatpak` hook DownloadCTA uses to show it to Linux visitors only) land
+ * on the root.
+ */
+import { FLATHUB_SETUP_URL, FLATHUB_URL, FLATPAK_STEPS } from '../data/site';
+
+interface Props {
+  verified?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+const { verified = false, class: cls = '', ...rest } = Astro.props;
+---
+<div
+  data-flatpak-panel
+  role="group"
+  aria-label="Install with Flatpak from Flathub"
+  class:list={[
+    'crop-frame w-fit max-w-full overflow-hidden rounded-xl border border-line-strong bg-paper-2 shadow-[0_18px_40px_-30px_rgba(20,24,30,0.4)]',
+    cls,
+  ]}
+  {...rest}
+>
+  <!-- Header: what this is, and where it comes from. -->
+  <div class="flex items-center justify-between gap-4 border-b border-line bg-panel px-3.5 py-2">
+    <span class="inline-flex items-center gap-2 font-mono text-[0.66rem] uppercase tracking-[0.18em] text-ink-soft">
+      <svg
+        viewBox="0 0 24 24"
+        class="h-3.5 w-3.5 text-accent"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 2.8 20 7.2v9.6L12 21.2 4 16.8V7.2L12 2.8Z" />
+        <path d="M4 7.2 12 11.6l8-4.4M12 11.6v9.6" />
+      </svg>
+      Or via Flatpak
+    </span>
+    <a
+      href={FLATHUB_URL}
+      target="_blank"
+      rel="noopener"
+      class="inline-flex shrink-0 items-center gap-1.5 font-mono text-[0.68rem] text-ink-faint transition-colors hover:text-ink"
+    >
+      {verified && (
+        <svg
+          viewBox="0 0 24 24"
+          class="h-3 w-3 text-accent-2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.6"
+          aria-hidden="true"
+        >
+          <path d="M4 12.5 9.5 18 20 6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      )}
+      {verified ? 'Verified on Flathub ↗' : 'Flathub ↗'}
+    </a>
+  </div>
+
+  <!--
+    One row per step. The step chip ticks once its command is copied and
+    stays ticked, so the two-step install reads as progress. On narrow
+    screens commands wrap at spaces under a hanging "$" instead of
+    scrolling sideways, so nothing is ever hidden behind the copy button.
+  -->
+  <ol class="divide-y divide-line">
+    {FLATPAK_STEPS.map((step, i) => (
+      <li class="flex items-center gap-3 px-3.5 py-2.5 transition-colors hover:bg-panel/40">
+        <span
+          data-step
+          class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[0.3rem] border border-line-strong font-mono text-[0.62rem] text-ink-faint transition-colors data-[done]:border-accent-2/50 data-[done]:bg-accent-2/10"
+          aria-hidden="true"
+        >
+          <span data-step-num>{i + 1}</span>
+          <svg
+            data-step-done
+            viewBox="0 0 24 24"
+            class="hidden h-3 w-3 text-accent-2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.8"
+          >
+            <path d="M4 12.5 9.5 18 20 6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+
+        <div class="flex min-w-0 flex-1 items-start gap-2 font-mono text-[0.8rem] leading-relaxed">
+          <span class="select-none text-accent" aria-hidden="true">$</span>
+          <code class="min-w-0 select-all break-words text-ink">{step.command}</code>
+        </div>
+
+        <button
+          type="button"
+          data-copy-cmd={step.command}
+          data-copy-label={step.label}
+          aria-label={`Copy the ${step.label.toLowerCase()} command`}
+          class="inline-flex h-8 min-w-8 shrink-0 items-center justify-center gap-1.5 rounded-md border border-line-strong bg-paper-2 px-2 font-mono text-[0.68rem] text-ink-soft transition-colors hover:border-ink/30 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent data-[copied]:border-accent-2/50 data-[copied]:text-accent-2"
+        >
+          <svg
+            data-copy-icon
+            viewBox="0 0 24 24"
+            class="h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <rect x="9" y="9" width="11" height="11" rx="2" />
+            <path d="M5 15V5a2 2 0 0 1 2-2h10" stroke-linecap="round" />
+          </svg>
+          <svg
+            data-check-icon
+            viewBox="0 0 24 24"
+            class="hidden h-3.5 w-3.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.4"
+            aria-hidden="true"
+          >
+            <path d="M4 12.5 9.5 18 20 6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <!-- Fixed 6ch so "Copy" → "Copied" never nudges the layout. -->
+          <span data-copy-text class="hidden w-[6ch] text-left sm:inline">Copy</span>
+        </button>
+      </li>
+    ))}
+  </ol>
+
+  <p class="flex flex-wrap items-center gap-x-1.5 border-t border-line bg-panel/60 px-3.5 py-2 font-mono text-[0.68rem] text-ink-faint">
+    New to Flatpak?
+    <a
+      href={FLATHUB_SETUP_URL}
+      target="_blank"
+      rel="noopener"
+      class="underline decoration-line-strong underline-offset-[3px] transition-colors hover:text-ink-soft hover:decoration-ink-faint"
+    >
+      Set up Flathub first ↗
+    </a>
+  </p>
+
+  <span data-copy-status class="sr-only" aria-live="polite" />
+</div>
+
+<script>
+  import { copyText } from '../scripts/clipboard';
+
+  // One delegated listener serves every Flatpak panel on the page.
+  const resets = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
+
+  const setCopied = (btn: HTMLElement, on: boolean) => {
+    btn.querySelector('[data-copy-icon]')?.classList.toggle('hidden', on);
+    btn.querySelector('[data-check-icon]')?.classList.toggle('hidden', !on);
+    const text = btn.querySelector('[data-copy-text]');
+    if (text) text.textContent = on ? 'Copied' : 'Copy';
+    // Styled through data-[copied]: variants, which Tailwind always orders after
+    // the button's base colours — toggling plain utility classes would lose.
+    btn.toggleAttribute('data-copied', on);
+  };
+
+  document.addEventListener('click', async (event) => {
+    const btn = (event.target as Element | null)?.closest<HTMLElement>('[data-copy-cmd]');
+    if (!btn) return;
+    if (!(await copyText(btn.dataset.copyCmd ?? ''))) return;
+
+    // Button: a brief "Copied", then back to idle.
+    setCopied(btn, true);
+    clearTimeout(resets.get(btn));
+    resets.set(btn, setTimeout(() => setCopied(btn, false), 1600));
+
+    // Step chip: ticks and stays ticked.
+    const row = btn.closest('li');
+    row?.querySelector('[data-step-num]')?.classList.add('hidden');
+    row?.querySelector('[data-step-done]')?.classList.remove('hidden');
+    row?.querySelector('[data-step]')?.setAttribute('data-done', '');
+
+    // Screen readers: clear first so copying the same line twice re-announces.
+    const status = btn.closest('[data-flatpak-panel]')?.querySelector('[data-copy-status]');
+    if (status) {
+      status.textContent = '';
+      requestAnimationFrame(() => {
+        status.textContent = `${btn.dataset.copyLabel} command copied`;
+      });
+    }
+  });
+</script>

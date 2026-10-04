@@ -1,0 +1,63 @@
+---
+// 404 — GitHub Pages serves this for any missing path, with the visitor's URL
+// still in the address bar. Kept out of search results (noindex), and written as
+// a CAD command prompt so a wrong turn still feels like part of the site.
+import Page from '../layouts/Page.astro';
+
+const base = import.meta.env.BASE_URL;
+const ways = [
+  { href: base, label: 'Home', hint: 'What Musa CAD is' },
+  { href: `${base}download/`, label: 'Download', hint: 'Windows, Linux, macOS preview' },
+  { href: `${base}autocad-alternative/`, label: 'AutoCAD alternative', hint: 'What carries over' },
+  { href: `${base}faq/`, label: 'FAQ', hint: 'Price, DWG, platforms, privacy' },
+];
+---
+
+<Page
+  title="Page not found — Musa CAD"
+  description="This page doesn't exist. Find Musa CAD, the free and open-source 2D CAD application, its downloads and its FAQ from here."
+  noindex
+>
+  <section class="mx-auto max-w-3xl px-5 pb-28 pt-[calc(var(--nav-h)+4rem)] sm:px-8">
+    <div class="crop-frame overflow-hidden rounded-2xl border border-line-strong bg-paper-2 font-mono text-[0.9rem] shadow-[0_30px_80px_-40px_rgba(20,24,30,0.4)]">
+      <div class="flex items-center gap-2 border-b border-line bg-panel px-4 py-2.5 text-xs text-ink-faint">
+        <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+        <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+        <span class="h-2.5 w-2.5 rounded-full bg-line-strong"></span>
+        <span class="ml-2">404 — not found</span>
+      </div>
+      <div class="space-y-1.5 px-5 py-6 leading-relaxed">
+        <p><span class="text-ink-faint">Command:</span> <span class="text-ink" data-missing-path>OPEN this page</span></p>
+        <p class="text-accent">Unknown command or missing page.</p>
+        <p class="text-ink-faint">Specify where to go next or [Home/Download/FAQ]:</p>
+      </div>
+    </div>
+
+    <h1 class="mt-12 text-4xl font-semibold sm:text-5xl">That page isn’t here.</h1>
+    <p class="mt-4 text-lg text-ink-soft">
+      The link may be old, or the address mistyped. One of these is probably what you were after:
+    </p>
+
+    <ul class="mt-8 grid gap-3 sm:grid-cols-2">
+      {
+        ways.map((w) => (
+          <li>
+            <a href={w.href} class="group flex items-center justify-between rounded-xl border border-line-strong bg-paper-2 px-5 py-4 transition-colors hover:border-ink/30">
+              <span>
+                <span class="block font-medium text-ink">{w.label}</span>
+                <span class="block text-sm text-ink-soft">{w.hint}</span>
+              </span>
+              <span aria-hidden="true" class="text-ink-faint transition-transform group-hover:translate-x-0.5">→</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Page>
+
+<script>
+  // Echo the path the visitor asked for into the "command line".
+  const el = document.querySelector('[data-missing-path]');
+  if (el) el.textContent = `OPEN ${decodeURIComponent(location.pathname)}`;
+</script>

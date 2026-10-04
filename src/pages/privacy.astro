@@ -1,0 +1,152 @@
+---
+// PRIVACY POLICY — for musacad.org and the Musa CAD application. Every statement
+// here is checked against the code: the site (src/scripts/github-live.ts is its
+// only network call and sessionStorage its only storage) and the engine
+// (src/ui/update_checker.cpp, update_installer.cpp, dwg_installer.cpp).
+import Page from '../layouts/Page.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { CONTACT_EMAIL, MAINTAINER } from '../data/site';
+
+const title = 'Privacy Policy — Musa CAD App and Website';
+const description =
+  'Musa CAD has no telemetry, no analytics and no account, and the website sets no cookies. What the app and musacad.org do send, to whom, and how to turn it off.';
+const crumbs = [{ name: 'Privacy policy', path: '/privacy/' }];
+const UPDATED = '2026-10-04';
+const base = import.meta.env.BASE_URL;
+const mail = `mailto:${CONTACT_EMAIL}`;
+---
+
+<Page {title} {description} {crumbs}>
+  <PageHeader eyebrow="Privacy" title="Privacy policy" {crumbs} updated={UPDATED}>
+    <p>
+      The short version: Musa CAD doesn’t track you. The app has no telemetry, no analytics and no
+      account, and your drawings never leave your computer. This website sets no cookies and runs
+      no analytics. Below is everything that does happen, in plain words.
+    </p>
+  </PageHeader>
+
+  <article class="prose-doc mx-auto max-w-3xl px-5 pb-28 sm:px-8">
+    <h2 id="who">Who I am</h2>
+    <p>
+      I’m {MAINTAINER}. I make Musa CAD and run this website, musacad.org. When this policy says
+      “I” or “me”, that’s who it means. You can reach me about anything here at
+      <a href={mail}>{CONTACT_EMAIL}</a>.
+    </p>
+
+    <h2 id="app">The Musa CAD application</h2>
+    <h3 id="app-nothing">What it doesn’t do</h3>
+    <p>
+      Musa CAD has no account, no sign-in, no telemetry, no usage analytics, no crash reporting
+      and no ads. It never uploads your drawings. Its settings — your preferences, where your DWG
+      converter is installed, when it last looked for updates — are kept in an ordinary settings
+      file on your computer.
+    </p>
+
+    <h3 id="update-check">The update check</h3>
+    <p>
+      The one thing Musa CAD does over the network on its own is look for a new version, at most
+      once a day:
+    </p>
+    <ul>
+      <li>
+        It sends a single HTTPS request to GitHub (<code>api.github.com</code>) — or to Flathub
+        (<code>flathub.org</code>) if you installed the Flatpak — asking for the latest release.
+      </li>
+      <li>
+        The request carries nothing about you or your drawings. Its user agent names only the
+        program and its version, for example <code>MusaCAD/0.6.0 (update check)</code>.
+      </li>
+      <li>
+        Like any request on the internet, it shows GitHub or Flathub your IP address. They handle
+        that under their own privacy policies; I don’t receive it.
+      </li>
+      <li>
+        It’s on by default in the packaged builds and off in builds you compile yourself. Switch
+        it off any time in Options (<code>OP</code>), or set the environment variable
+        <code>MUSACAD_NO_UPDATE_CHECK</code>.
+      </li>
+    </ul>
+
+    <h3 id="downloads-in-app">Downloads you ask for</h3>
+    <p>Two features fetch files from the internet, and only when you choose to use them:</p>
+    <ul>
+      <li>
+        <strong>Updating on Windows.</strong> When you accept an update, Musa CAD downloads the
+        new installer and its SHA-256 checksum from the project’s GitHub releases.
+      </li>
+      <li>
+        <strong>DWG Setup.</strong> When you ask it to fetch the ODA File Converter, Musa CAD
+        downloads it from the Open Design Alliance (<code>opendesign.com</code>). The converter is
+        their program, under their terms, and it runs on your computer.
+      </li>
+    </ul>
+
+    <h2 id="website">This website</h2>
+    <h3 id="no-cookies">No cookies, no analytics</h3>
+    <p>
+      musacad.org sets no cookies and uses no analytics, advertising or tracking of any kind.
+      Its fonts are served from this site, not from a font service.
+    </p>
+
+    <h3 id="hosting">Hosting</h3>
+    <p>
+      The site is hosted on GitHub Pages. To deliver pages and keep the service secure, GitHub
+      processes the usual details of each request — your IP address, browser and the page you
+      asked for — under the
+      <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement</a>.
+      GitHub Pages doesn’t give me visitor logs.
+    </p>
+
+    <h3 id="live-version">The live version number</h3>
+    <p>
+      So that the download buttons always point at the newest release, your browser asks
+      GitHub’s public API (<code>api.github.com</code>) for the current version and star count.
+      GitHub sees that request like any other. The answer is kept for 15 minutes in your
+      browser’s session storage — not a cookie, never sent anywhere, and gone when you close
+      the tab.
+    </p>
+
+    <h3 id="third-party-sites">Downloads and other sites</h3>
+    <p>
+      Downloads come from GitHub releases or Flathub, and links to other sites take you to
+      services with their own privacy policies. Once you follow a link, this policy no longer
+      covers what happens there.
+    </p>
+
+    <h2 id="donations">Donations</h2>
+    <p>
+      If you <a href={`${base}donate/`}>donate</a>, the payment goes through the service you pick —
+      your UPI app, PayPal or Ko-fi — under that service’s privacy policy. It shares with me what
+      it shares with any recipient, typically your name, the amount and any message you add. I
+      use that only to keep my own records and to thank you, and I never sell or share it.
+    </p>
+
+    <h2 id="email">If you email me</h2>
+    <p>
+      I get your email address and whatever you write. I use it to reply, keep it only as long
+      as the conversation needs, and never add you to a mailing list or pass it on.
+    </p>
+
+    <h2 id="rights">Your choices and rights</h2>
+    <p>
+      Since I don’t collect personal data through the app or the site, there’s usually nothing to
+      look up. For anything I do hold — emails, donation records — you can ask me to show it to
+      you, correct it or delete it by writing to <a href={mail}>{CONTACT_EMAIL}</a>. You also
+      have whatever rights the data-protection law where you live gives you, including the right
+      to complain to your local regulator.
+    </p>
+
+    <h2 id="children">Children</h2>
+    <p>
+      Musa CAD and this site aren’t directed at children, and I don’t knowingly collect anything
+      from anyone, of any age.
+    </p>
+
+    <h2 id="changes">Changes to this policy</h2>
+    <p>
+      If what the app or the site does with data changes, this page changes with it, and the date
+      at the top moves. Every past version is in this website’s
+      <a href="https://github.com/MusaCAD/MusaCAD-Website/commits/main/src/pages/privacy.astro" target="_blank" rel="noopener">public history</a>.
+    </p>
+  </article>
+</Page>

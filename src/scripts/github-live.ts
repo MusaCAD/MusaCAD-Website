@@ -96,7 +96,7 @@ function link(text: string, href: string, title?: string): HTMLAnchorElement {
   a.href = href;
   if (title) a.title = title;
   a.className =
-    'underline decoration-line-strong underline-offset-[3px] transition-colors hover:text-ink-soft hover:decoration-ink-faint';
+    'inline-flex min-h-6 items-center underline decoration-line-strong underline-offset-[3px] transition-colors hover:text-ink-soft hover:decoration-ink-faint';
   return a;
 }
 

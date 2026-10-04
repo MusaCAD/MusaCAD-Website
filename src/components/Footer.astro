@@ -1,6 +1,6 @@
 ---
 // Footer — full-width "drawing sheet" footer with a faint blueprint-grid detail.
-// Quiet and elegant: brand + tagline on the left, two link columns, and a
+// Quiet and elegant: brand + tagline on the left, three link columns, and a
 // hairline bottom bar with license, copyright, and a small mono CAD detail.
 // No JS — purely presentational (the global [data-donate] handler is not needed here).
 import {
@@ -8,7 +8,10 @@ import {
   RELEASES_URL,
   ARCHITECTURE_URL,
   BUILD_URL,
+  FLATHUB_URL,
+  ROADMAP_URL,
   LICENSE,
+  LICENSE_URL,
 } from '../data/site';
 
 // Section links work whether the footer is on the home page (pure hash, smooth-
@@ -20,18 +23,29 @@ const sect = (hash: string) => (onHome ? hash : `${base}${hash}`);
 
 const product = [
   { label: 'Features', href: sect('#features') },
-  { label: 'Performance', href: sect('#performance') },
-  { label: 'Architecture', href: sect('#architecture') },
-  { label: 'Download', href: sect('#download') },
-  { label: 'Donate', href: `${base}donate` },
+  { label: 'Screenshots', href: sect('#screenshots') },
+  { label: 'Download', href: `${base}download/` },
+  { label: 'AutoCAD alternative', href: `${base}autocad-alternative/` },
+  { label: 'FAQ', href: `${base}faq/` },
+  { label: 'Donate', href: `${base}donate/` },
 ];
 
 // External project links — all open in a new tab with rel="noopener".
 const project = [
   { label: 'GitHub', href: REPO_URL },
   { label: 'Releases', href: RELEASES_URL },
+  { label: 'Flathub', href: FLATHUB_URL },
+  { label: 'Roadmap', href: ROADMAP_URL },
   { label: 'Architecture docs', href: ARCHITECTURE_URL },
   { label: 'Build guide', href: BUILD_URL },
+];
+
+const company = [
+  { label: 'About', href: `${base}about/` },
+  { label: 'Contact', href: `${base}about/#contact` },
+  { label: 'Security', href: `${base}about/#security` },
+  { label: 'Privacy policy', href: `${base}privacy/` },
+  { label: 'Terms of use', href: `${base}terms/` },
 ];
 ---
 
@@ -39,23 +53,15 @@ const project = [
   <!-- Faint blueprint grid — decorative, behind content, fading toward the top. -->
   <div
     aria-hidden="true"
-    class="pointer-events-none absolute inset-0 opacity-[0.5]"
-    style="
-      background-image:
-        linear-gradient(to right, var(--color-grid, #cfd8e3) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--color-grid, #cfd8e3) 1px, transparent 1px);
-      background-size: 32px 32px;
-      mask-image: linear-gradient(to bottom, transparent, black 120px);
-      -webkit-mask-image: linear-gradient(to bottom, transparent, black 120px);
-    "
+    class="grid-fade-top pointer-events-none absolute inset-0 opacity-[0.5]"
   >
   </div>
 
   <div class="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20">
     <!-- Top: brand block + link columns -->
-    <div class="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr] md:gap-8">
+    <div class="grid gap-12 sm:grid-cols-3 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-8">
       <!-- Brand -->
-      <div class="max-w-sm">
+      <div class="max-w-sm sm:col-span-3 lg:col-span-1">
         <a href={import.meta.env.BASE_URL} class="group inline-flex items-center gap-2.5" aria-label="Musa CAD home">
           <img
             src={`${import.meta.env.BASE_URL}icon-192.png`}
@@ -73,8 +79,8 @@ const project = [
           CAD that moves at 144 Hz.
         </p>
         <p class="mt-3 text-sm leading-relaxed text-ink-soft">
-          A high-performance, multi-threaded 2D CAD engine in modern C++23.
-          GPU-accelerated, data-oriented, clone-and-build clean.
+          Free, open-source 2D CAD with AutoCAD’s commands, ribbon and shortcuts.
+          For Windows and Linux, with a macOS preview.
         </p>
       </div>
 
@@ -131,6 +137,24 @@ const project = [
           }
         </ul>
       </nav>
+
+      <!-- About & legal (on-site) -->
+      <nav aria-label="About and legal">
+        <h2 class="font-mono text-xs uppercase tracking-[0.22em] text-ink-faint">
+          About
+        </h2>
+        <ul class="mt-4 space-y-2.5">
+          {
+            company.map((l) => (
+              <li>
+                <a href={l.href} class="text-sm text-ink-soft transition-colors hover:text-ink">
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
     </div>
 
     <!-- Hairline divider with a small dimension-tick CAD detail -->
@@ -149,10 +173,10 @@ const project = [
 
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 font-mono">
         <a
-          href={REPO_URL}
+          href={LICENSE_URL}
           target="_blank"
           rel="noopener"
-          class="transition-colors hover:text-ink-soft"
+          class="underline-offset-[3px] transition-colors hover:text-ink-soft hover:underline"
         >
           {LICENSE}
         </a>
@@ -160,5 +184,10 @@ const project = [
         <span class="text-ink-faint">@dist&lt;angle</span>
       </div>
     </div>
+
+    <p class="mt-4 max-w-3xl text-xs leading-relaxed text-ink-faint">
+      AutoCAD is a registered trademark of Autodesk, Inc. Musa CAD is an independent open-source
+      project and is not affiliated with, endorsed by or sponsored by Autodesk.
+    </p>
   </div>
 </footer>
