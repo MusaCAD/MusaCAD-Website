@@ -62,46 +62,136 @@ npm run check      # astro check (type-checks .astro + TS)
 ```
 public/
   musacad_logo.svg        # official logo, verbatim from the engine repo (source of truth)
-  musacad_mark.png        # 512px Open Graph card, opaque paper ground
+  og-image.png            # 1200×630 share card (generated, see scripts/)
+  icon-512.png            # transparent 512px mark (manifest, structured data)
+  icon-maskable-512.png   # 512px mark on the paper ground, inside the maskable safe zone
   apple-touch-icon.png    # 180px iOS home screen, opaque (iOS composites alpha to black)
   icon-192.png            # transparent mark used inline in the navbar + footer
   favicon*.png            # 32/48px favicons, transparent
+  musacad_mark.png        # the old share card, kept for links already shared
+  screenshots/*.webp      # product screenshots, 500 and 1000px (generated)
+  .well-known/            # Flathub domain verification — keep it
+scripts/
+  make-images.sh          # regenerate screenshots, icons and the share card
+  og-image.html           # the share card's template
 src/
-  layouts/Base.astro      # document shell: fonts, meta, blueprint bg, smooth scroll
+  layouts/
+    Base.astro            # document shell: meta, canonical, Open Graph, JSON-LD, skip link
+    Page.astro            # Base + navbar + <main> + footer, for every page but home
   components/
     Navbar.astro          # sticky glass nav + live GitHub star count
-    Hero.astro            # headline, CTAs, interactive CAD viewport, command line
-    DownloadCTA.astro     # OS-aware download button, "other downloads" line, Flatpak panel
+    Hero.astro            # the <h1>, CTAs, interactive CAD viewport
+    Screenshots.astro     # the product screenshots
+    Drafting.astro        # what a drafter can do (owns #features)
+    Features.astro        # engine internals ("What's inside", #engine)
+    DownloadCTA.astro     # OS-aware download button + "other downloads" line
+    FlatpakPanel.astro    # the Flathub commands with copy buttons
+    PageHeader.astro      # breadcrumb, eyebrow, <h1> and lede for content pages
+  pages/
+    index.astro           # home
+    download.astro        # every platform, requirements, checksums, build from source
+    autocad-alternative.astro  # for AutoCAD users: what carries over, an honest comparison
+    faq.astro             # FAQ (FAQPage structured data from data/faq.ts)
+    about.astro           # who makes it, contact, security reports
+    privacy.astro         # privacy policy
+    terms.astro           # terms of use
+    donate.astro          # donations
+    404.astro             # not-found page (noindex)
+    robots.txt.ts         # robots.txt
+    sitemap.xml.ts        # sitemap, discovered from src/pages
+    llms.txt.ts           # plain summary for AI assistants (llmstxt.org)
+    site.webmanifest.ts   # web app manifest
+    .well-known/security.txt.ts  # RFC 9116 security contact
   scripts/
     smooth-scroll.ts      # Lenis <-> GSAP ScrollTrigger integration
     hero-canvas.ts        # Three.js CAD drawing (draws on load, snap markers, parallax)
+    three-lite.ts         # the slice of three.js the canvas uses
     github-live.ts        # runtime refresh of stars / release tag / download links
     clipboard.ts          # copy-to-clipboard with a fallback for older browsers
   data/
-    site.ts               # canonical links + release model + OS & asset rules (pure)
+    site.ts               # links, contact, platform support, release model (pure)
+    seo.ts                # structured data and the share card
+    faq.ts                # the FAQ, for the page and its structured data
+    screenshots.ts        # screenshot files, alt text and captions
     github.ts             # build-time GitHub fetch (server only)
     flathub.ts            # build-time Flathub verification status (server only)
   styles/global.css       # design tokens (@theme) + base + component layer
-  pages/index.astro       # the page
-astro.config.mjs          # site URL + Tailwind v4 Vite plugin
+astro.config.mjs          # site URL, base path, inlined stylesheet, Tailwind v4
 ```
 
 ### Design tokens
 
 All color/type/motion tokens live in the `@theme` block of
 [`src/styles/global.css`](src/styles/global.css). The brand hues are **sampled
-from the official logo**, `assets/branding/musacad_logo.svg` in the engine repo:
-the orange fillet face (`--color-accent: #f73c1c`) drives every CTA, the navy
-body (`--color-brand-navy: #0e2c4c`) backs the deep panels, and the teal end face
-(`--color-brand-green: #0bd1b5`) is the highlight accent. The Three.js hero canvas
-reads these via CSS custom properties, so re-theming the site re-themes the live
-drawing too.
+from the official logo**, `assets/branding/musacad_logo.svg` in the engine repo,
+and come in two strengths:
 
-If the mark ever changes again, re-sample those three from the SVG and regenerate
-the rasters in [`public/`](public/) — every icon on the site derives from that one
-file.
+| Token | Value | Use |
+| ----- | ----- | --- |
+| `--color-brand` | `#f73c1c` | the logo's exact orange — large headings, canvases, diagrams |
+| `--color-accent` | `#d82608` | the same hue deepened for WCAG AA — buttons and small text |
+| `--color-accent-2-bright` | `#0fa968` | dimension green for strokes and markers |
+| `--color-accent-2` | `#0b7a4b` | the same green at AA strength for small text |
+| `--color-brand-navy` | `#0e2c4c` | the logo's navy body — deep panels |
+
+The logo's orange measures 3.5:1 on the paper ground: fine for large type, short
+of the 4.5:1 that small text and white-on-orange buttons need. So display type and
+decoration keep the logo's exact hue, and everything a visitor has to read or
+press uses the deeper shade. The Three.js canvases read `--accent` and
+`--accent-2`, which point at the bright values.
+
+If the mark ever changes again, re-sample `--color-brand` and the navy from the
+SVG, recompute the AA shades for 4.5:1 on white, paper and panel, and run
+`scripts/make-images.sh` — every icon and the share card derive from it.
 
 ---
+
+## Search engines, AI assistants and the share card
+
+Every page is built to be understood without running JavaScript:
+
+- **One `<h1>` per page** that says what the page is about. On the home page it's
+  "Free, open-source AutoCAD alternative"; the 144 Hz slogan is display text.
+- **Self-referencing canonical URLs**, full Open Graph and Twitter tags, and a
+  1200×630 share card (`public/og-image.png`).
+- **Structured data** (schema.org JSON-LD, [`src/data/seo.ts`](src/data/seo.ts)):
+  every page carries the Organization, WebSite, SoftwareApplication (free,
+  LGPL, platforms, version, features) and SoftwareSourceCode nodes, plus its own
+  WebPage and BreadcrumbList; the FAQ is an `FAQPage`. There are no ratings or
+  reviews in it, and there shouldn't be until they're real.
+- **`/sitemap.xml`** lists every page in `src/pages` automatically (the 404 and
+  `_`-prefixed files excepted), with the screenshots for image search.
+  **`/robots.txt`** welcomes every crawler and points at it.
+- **`/llms.txt`** is a plain summary for AI assistants: what Musa CAD is, what
+  it isn't (3D, AutoLISP), platforms, license, privacy and links.
+- **`/.well-known/security.txt`** names the security contact; its `Expires` is
+  computed at build time, and the nightly rebuild keeps it six months ahead.
+
+What the site says about platforms comes from `PLATFORM_SUPPORT` in
+[`src/data/site.ts`](src/data/site.ts): Windows and Linux are supported, macOS is
+a preview until the Metal renderer lands. Change it there and the download page,
+FAQ, structured data and `llms.txt` follow.
+
+### Regenerating images
+
+```sh
+scripts/make-images.sh ../musa_cad   # path to the engine checkout
+```
+
+Rebuilds the WebP screenshots from the engine's `assets/screenshots/`, the 512px
+icons from the logo, and the share card from `scripts/og-image.html`. Needs
+Chrome or Chromium and `npm ci`.
+
+---
+
+## Legal pages
+
+[`/privacy/`](src/pages/privacy.astro) and [`/terms/`](src/pages/terms.astro) are
+written against what the code actually does — the site's only network call is
+`scripts/github-live.ts` and its only storage is that file's 15-minute
+`sessionStorage` cache; the app's only automatic request is the update check in
+the engine's `src/ui/update_checker.cpp`. If either changes, update the policy
+and its date in the same commit.
 
 ## Live GitHub data & OS-aware downloads
 
@@ -193,6 +283,9 @@ renderings cannot drift.
 
 ## Accessibility
 
+- WCAG AA contrast throughout (see the token table above), 24px minimum touch
+  targets, underlined links in running text, and a "Skip to content" link that
+  moves keyboard focus into the page.
 - Full `prefers-reduced-motion` support: Lenis is disabled, the hero canvas
   renders its **final static state** (no animation loop, no pointer tracking),
   and reveal animations are neutralized.
@@ -252,11 +345,14 @@ states with no manual edit.
 
 ## Status
 
-All ten sections are built and verified (desktop + mobile, normal + reduced motion):
-navbar, hero, the pinned **draw-on-scroll** signature sequence, features grid,
-performance counters + FPS-vs-edit-activity viz, interactive command-line showcase,
-animated three-thread architecture diagram, get-started/build, community/support,
-and footer.
+The home page has twelve sections: navbar, hero, the pinned draw-on-scroll
+sequence, screenshots, drafting features, engine internals, performance, the
+interactive command line, the architecture diagram, get-started/build,
+community, and footer. Around it: download, AutoCAD alternative, FAQ, about,
+privacy, terms, donate and a 404 page.
+
+Every page scores 100 for accessibility, best practices and SEO in Lighthouse,
+on mobile and desktop, and validates clean with `html-validate`.
 
 ## Support
 
