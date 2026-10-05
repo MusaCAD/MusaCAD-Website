@@ -14,6 +14,7 @@ import {
   LICENSE_URL,
   MAINTAINER,
   MAINTAINER_URL,
+  ORG_URL,
   REPO_URL,
   type Catalog,
 } from './site';
@@ -91,7 +92,7 @@ export function siteGraph(catalog: Catalog): Node[] {
       },
       image: { '@id': IDS.logo },
       founder: { '@type': 'Person', name: MAINTAINER, url: MAINTAINER_URL },
-      sameAs: ['https://github.com/MusaCAD', REPO_URL, FLATHUB_URL],
+      sameAs: [ORG_URL, REPO_URL, FLATHUB_URL],
     },
     {
       '@type': 'WebSite',

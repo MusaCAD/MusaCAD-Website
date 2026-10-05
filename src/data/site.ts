@@ -10,7 +10,9 @@
 export const REPO_OWNER = 'MusaCAD';
 export const REPO_NAME = 'MusaCAD';
 
-export const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
+/** The MusaCAD organization on GitHub: the engine, this website and the rest. */
+export const ORG_URL = `https://github.com/${REPO_OWNER}`;
+export const REPO_URL = `${ORG_URL}/${REPO_NAME}`;
 export const RELEASES_URL = `${REPO_URL}/releases`;
 export const REPO_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 
