@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { CONTACT_EMAIL } from '../../data/site';
+import { CONTACT_EMAIL, SECURITY_REPORT_URL } from '../../data/site';
 
 /**
  * RFC 9116. `Expires` must stay under a year out; computing it at build time and
@@ -10,6 +10,8 @@ export const GET: APIRoute = ({ site }) => {
   const expires = new Date(Date.now() + 180 * 864e5);
   expires.setUTCHours(0, 0, 0, 0);
   const body = [
+    // In order of preference: a private GitHub advisory, then email.
+    `Contact: ${SECURITY_REPORT_URL}`,
     `Contact: mailto:${CONTACT_EMAIL}`,
     `Expires: ${expires.toISOString()}`,
     'Preferred-Languages: en',

@@ -33,6 +33,8 @@ export const RELEASES_API = `${REPO_API}/releases?per_page=${RELEASE_LOOKBACK}`;
 export const ARCHITECTURE_URL = `${REPO_URL}/blob/main/docs/ARCHITECTURE.md`;
 export const BUILD_URL = `${REPO_URL}/blob/main/docs/BUILD.md`;
 export const ISSUES_URL = `${REPO_URL}/issues`;
+/** GitHub's private vulnerability reporting for the app repository. */
+export const SECURITY_REPORT_URL = `${REPO_URL}/security/advisories/new`;
 export const ROADMAP_URL = `${REPO_URL}/blob/main/docs/ROADMAP.md`;
 export const COMMANDS_URL = `${REPO_URL}/blob/main/docs/COMMANDS.md`;
 export const CLI_URL = `${REPO_URL}/blob/main/docs/CLI.md`;

@@ -13,6 +13,7 @@ import {
   MAINTAINER_URL,
   ORG_URL,
   REPO_URL,
+  SECURITY_REPORT_URL,
 } from '../data/site';
 
 const title = 'About Musa CAD — Who Makes It and How to Get in Touch';
@@ -97,10 +98,12 @@ const principles = [
 
       <h2 id="security">Reporting a security problem</h2>
       <p>
-        If you find a security problem in Musa CAD or on this website, please email me at
-        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> rather than opening a public issue,
-        with enough detail to reproduce it. I’ll reply, keep you in the loop until it’s fixed, and
-        credit you in the release notes if you’d like.
+        If you find a security problem in Musa CAD or on this website, please report it
+        privately rather than in a public issue — through
+        <a href={SECURITY_REPORT_URL} target="_blank" rel="noopener">GitHub’s private vulnerability reporting</a>,
+        or by email to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> — with enough detail
+        to reproduce it. I’ll reply, keep you in the loop until it’s fixed, and credit you in the
+        release notes if you’d like.
       </p>
 
       <h2 id="support">Supporting the work</h2>
